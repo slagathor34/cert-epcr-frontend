@@ -98,8 +98,10 @@ export interface AuthApiResponse {
 export const RolePermissions = {
   admin: [
     'manage_users',
+    'create_reports',
     'view_all_reports',
     'edit_all_reports',
+    'edit_own_reports',
     'delete_reports',
     'manage_system_settings',
     'view_analytics',
