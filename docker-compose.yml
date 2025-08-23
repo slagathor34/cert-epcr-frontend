@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  epcr-frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: cert-epcr-frontend
+    ports:
+      - "3000:80"
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+    volumes:
+      # Optional: Mount nginx logs for debugging
+      - ./logs/nginx:/var/log/nginx
+    networks:
+      - epcr-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Optional: Backend service placeholder
+  # Uncomment and configure when you have a backend API
+  # epcr-backend:
+  #   image: your-backend-image:latest
+  #   container_name: cert-epcr-backend
+  #   ports:
+  #     - "3001:3001"
+  #   environment:
+  #     - NODE_ENV=production
+  #     - DATABASE_URL=your-db-connection-string
+  #   restart: unless-stopped
+  #   networks:
+  #     - epcr-network
+
+  # Optional: Database service (PostgreSQL example)
+  # epcr-database:
+  #   image: postgres:15-alpine
+  #   container_name: cert-epcr-db
+  #   environment:
+  #     - POSTGRES_DB=epcr_db
+  #     - POSTGRES_USER=epcr_user
+  #     - POSTGRES_PASSWORD=your_secure_password
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   ports:
+  #     - "5432:5432"
+  #   restart: unless-stopped
+  #   networks:
+  #     - epcr-network
+
+networks:
+  epcr-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local

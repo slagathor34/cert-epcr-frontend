@@ -1,10 +1,13 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './contexts/AuthContext';
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { Layout } from './components/layout/Layout';
+import { LoginPage } from './pages/LoginPage';
 import { Dashboard } from './pages/Dashboard';
-import { EPCRFormPage } from './pages/EPCRFormPage';
 import { EPCRFormPagePDF } from './pages/EPCRFormPagePDF';
 import { EPCRFormPageSimple } from './pages/EPCRFormPageSimple';
+import { UserManagement } from './pages/UserManagement';
 import { initializeMockData } from './services/recordService';
 
 function App() {
@@ -12,20 +15,84 @@ function App() {
   useEffect(() => {
     initializeMockData().catch(console.error);
   }, []);
+
   return (
     <Router>
-      <Layout>
+      <AuthProvider>
         <Routes>
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/epcr/new" element={<EPCRFormPagePDF />} />
-          <Route path="/epcr/pdf" element={<EPCRFormPagePDF />} />
-          <Route path="/epcr/simple" element={<EPCRFormPageSimple />} />
-          <Route path="/epcr/:id" element={<EPCRFormPagePDF />} />
-          <Route path="/epcr/:id/edit" element={<EPCRFormPagePDF />} />
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          {/* Public Routes */}
+          <Route path="/login" element={<LoginPage />} />
+          
+          {/* Protected Routes */}
+          <Route path="/" element={
+            <ProtectedRoute>
+              <Navigate to="/dashboard" replace />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/dashboard" element={
+            <ProtectedRoute>
+              <Layout>
+                <Dashboard />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/epcr/new" element={
+            <ProtectedRoute requiredPermission="create_reports">
+              <Layout>
+                <EPCRFormPagePDF />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/epcr/pdf" element={
+            <ProtectedRoute>
+              <Layout>
+                <EPCRFormPagePDF />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/epcr/simple" element={
+            <ProtectedRoute>
+              <Layout>
+                <EPCRFormPageSimple />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/epcr/:id" element={
+            <ProtectedRoute>
+              <Layout>
+                <EPCRFormPagePDF />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/epcr/:id/edit" element={
+            <ProtectedRoute requiredPermission="edit_own_reports">
+              <Layout>
+                <EPCRFormPagePDF />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/admin/users" element={
+            <ProtectedRoute requiredPermission="manage_users">
+              <Layout>
+                <UserManagement />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="*" element={
+            <ProtectedRoute>
+              <Navigate to="/dashboard" replace />
+            </ProtectedRoute>
+          } />
         </Routes>
-      </Layout>
+      </AuthProvider>
     </Router>
   );
 }

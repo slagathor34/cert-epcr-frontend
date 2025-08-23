@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   AppBar,
   Toolbar,
@@ -9,11 +9,27 @@ import {
   Button,
   Breadcrumbs,
   Link,
+  Avatar,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
+  Divider,
+  Chip,
 } from '@mui/material';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Dashboard as DashboardIcon, Add as AddIcon } from '@mui/icons-material';
+import { 
+  Dashboard as DashboardIcon, 
+  Add as AddIcon,
+  AccountCircle as ProfileIcon,
+  Settings as SettingsIcon,
+  AdminPanelSettings as AdminIcon,
+  Logout as LogoutIcon,
+} from '@mui/icons-material';
 import { ChatBot } from '../ui/ChatBot';
+import { useAuth } from '../../contexts/AuthContext';
+import { usePermissions } from '../auth/ProtectedRoute';
 
 const theme = createTheme({
   palette: {
@@ -187,6 +203,166 @@ interface LayoutProps {
   children: React.ReactNode;
 }
 
+const UserMenu: React.FC = () => {
+  const { user, logout } = useAuth();
+  const { hasPermission } = usePermissions();
+  const navigate = useNavigate();
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+
+  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleLogout = async () => {
+    handleClose();
+    await logout();
+    navigate('/login');
+  };
+
+  const handleNavigation = (path: string) => {
+    handleClose();
+    navigate(path);
+  };
+
+  if (!user) return null;
+
+  const getRoleColor = (role: string) => {
+    switch (role) {
+      case 'admin': return 'error';
+      case 'supervisor': return 'warning';
+      case 'responder': return 'primary';
+      case 'trainee': return 'info';
+      case 'viewer': return 'default';
+      default: return 'default';
+    }
+  };
+
+  return (
+    <>
+      <Button
+        color="inherit"
+        onClick={handleClick}
+        sx={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: 1,
+          textTransform: 'none',
+          backgroundColor: 'rgba(255,255,255,0.1)',
+          borderRadius: 2,
+          px: 2,
+          py: 1
+        }}
+      >
+        <Avatar 
+          sx={{ 
+            width: 32, 
+            height: 32, 
+            bgcolor: 'rgba(255,255,255,0.2)',
+            color: 'white',
+            fontSize: '0.875rem'
+          }}
+        >
+          {user.firstName.charAt(0)}{user.lastName.charAt(0)}
+        </Avatar>
+        <Box sx={{ textAlign: 'left', display: { xs: 'none', md: 'block' } }}>
+          <Typography variant="body2" sx={{ color: 'white', fontWeight: 600, lineHeight: 1.2 }}>
+            {user.firstName} {user.lastName}
+          </Typography>
+          <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.8)', lineHeight: 1 }}>
+            {user.role} • {user.certificationLevel}
+          </Typography>
+        </Box>
+      </Button>
+      
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={handleClose}
+        transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+        anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+        PaperProps={{
+          sx: {
+            mt: 1,
+            minWidth: 280,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+            border: '1px solid rgba(255,255,255,0.1)'
+          }
+        }}
+      >
+        {/* User Info Header */}
+        <Box sx={{ px: 2, py: 1.5, borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+            <Avatar sx={{ bgcolor: '#1976d2' }}>
+              {user.firstName.charAt(0)}{user.lastName.charAt(0)}
+            </Avatar>
+            <Box>
+              <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                {user.firstName} {user.lastName}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                {user.email}
+              </Typography>
+            </Box>
+          </Box>
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Chip
+              size="small"
+              label={user.role}
+              color={getRoleColor(user.role) as any}
+              variant="filled"
+            />
+            <Chip
+              size="small"
+              label={user.certificationLevel}
+              variant="outlined"
+              color="primary"
+            />
+          </Box>
+        </Box>
+
+        {/* Menu Items */}
+        <MenuItem onClick={() => handleNavigation('/profile')}>
+          <ListItemIcon>
+            <ProfileIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>Profile & Settings</ListItemText>
+        </MenuItem>
+
+        {hasPermission('manage_users') && (
+          <MenuItem onClick={() => handleNavigation('/admin/users')}>
+            <ListItemIcon>
+              <AdminIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>User Management</ListItemText>
+          </MenuItem>
+        )}
+
+        {hasPermission('manage_system_settings') && (
+          <MenuItem onClick={() => handleNavigation('/admin/settings')}>
+            <ListItemIcon>
+              <SettingsIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>System Settings</ListItemText>
+          </MenuItem>
+        )}
+
+        <Divider />
+        
+        <MenuItem onClick={handleLogout} sx={{ color: 'error.main' }}>
+          <ListItemIcon>
+            <LogoutIcon fontSize="small" color="error" />
+          </ListItemIcon>
+          <ListItemText>Sign Out</ListItemText>
+        </MenuItem>
+      </Menu>
+    </>
+  );
+};
+
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -227,7 +403,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               }}>
                 <img 
                   src="/sfd-logo.png" 
-                  alt="Sacramento CERT Logo"
+                  alt="Sacramento Fire CERT Logo"
                   style={{ 
                     width: '40px', 
                     height: '40px',
@@ -243,7 +419,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                     lineHeight: 1.2,
                     color: 'white'
                   }}>
-                    Sacramento CERT
+                    Sacramento Fire CERT
                   </Typography>
                   <Typography variant="caption" sx={{ 
                     color: 'rgba(255,255,255,0.8)',
@@ -256,7 +432,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               </Box>
             </Box>
             
-            <Box sx={{ display: 'flex', gap: 1 }}>
+            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
               <Button
                 color="inherit"
                 startIcon={<DashboardIcon />}
@@ -275,6 +451,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               >
                 New Report
               </Button>
+              <UserMenu />
             </Box>
           </Toolbar>
           
@@ -322,7 +499,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
               <Box>
                 <Typography variant="body1" sx={{ fontWeight: 600, mb: 0.5 }}>
-                  Sacramento CERT
+                  Sacramento Fire CERT
                 </Typography>
                 <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)' }}>
                   Electronic Patient Care Records System
@@ -330,7 +507,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               </Box>
               <Box sx={{ textAlign: 'right' }}>
                 <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)' }}>
-                  © {new Date().getFullYear()} Sacramento CERT
+                  © {new Date().getFullYear()} Sacramento Fire CERT
                 </Typography>
                 <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.6)' }}>
                   All rights reserved. Sacramento Fire Department

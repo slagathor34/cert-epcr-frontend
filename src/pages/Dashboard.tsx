@@ -535,7 +535,7 @@ export const Dashboard: React.FC = () => {
         }}>
           <img 
             src="/sfd-logo.png" 
-            alt="Sacramento CERT Logo"
+            alt="Sacramento Fire CERT Logo"
             style={{ 
               width: '60px', 
               height: '60px',
@@ -548,7 +548,7 @@ export const Dashboard: React.FC = () => {
           Patient Care Records Dashboard
         </Typography>
         <Typography variant="h6" sx={{ color: 'rgba(255,255,255,0.9)', fontWeight: 400 }}>
-          Sacramento CERT - Sacramento Fire Department
+          Sacramento Fire CERT - Sacramento Fire Department
         </Typography>
         <Typography variant="body1" sx={{ color: 'rgba(255,255,255,0.8)', mt: 1 }}>
           Manage and review electronic patient care reports for emergency response incidents

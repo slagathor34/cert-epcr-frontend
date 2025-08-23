@@ -164,44 +164,86 @@ export function InteractiveBodyDiagram({
           viewBox="0 0 100 85"
           style={{ border: '1px solid #ccc', borderRadius: 8 }}
         >
-          {/* Basic body outline */}
+          <defs>
+            <style>
+              {`
+                .interactive-body { fill: rgba(33, 150, 243, 0.05); stroke: #2196f3; stroke-width: 0.6; stroke-linejoin: round; }
+                .interactive-outline { fill: none; stroke: #1976d2; stroke-width: 0.8; stroke-linejoin: round; }
+              `}
+            </style>
+          </defs>
+
+          {/* Anatomical body outline */}
           {side === 'front' ? (
             <g>
-              {/* Head */}
-              <ellipse cx="50" cy="12" rx="6" ry="6" fill="none" stroke="#333" strokeWidth="0.5"/>
-              {/* Torso */}
-              <rect x="42" y="20" width="16" height="28" rx="2" fill="none" stroke="#333" strokeWidth="0.5"/>
-              {/* Arms */}
-              <rect x="28" y="22" width="6" height="32" rx="3" fill="none" stroke="#333" strokeWidth="0.5"/>
-              <rect x="66" y="22" width="6" height="32" rx="3" fill="none" stroke="#333" strokeWidth="0.5"/>
-              {/* Legs */}
-              <rect x="42" y="48" width="6" height="34" rx="3" fill="none" stroke="#333" strokeWidth="0.5"/>
-              <rect x="52" y="48" width="6" height="34" rx="3" fill="none" stroke="#333" strokeWidth="0.5"/>
-              {/* Hands */}
-              <circle cx="27" cy="56" r="3" fill="none" stroke="#333" strokeWidth="0.5"/>
-              <circle cx="73" cy="56" r="3" fill="none" stroke="#333" strokeWidth="0.5"/>
-              {/* Feet */}
-              <ellipse cx="44" cy="79" rx="4" ry="2" fill="none" stroke="#333" strokeWidth="0.5"/>
-              <ellipse cx="56" cy="79" rx="4" ry="2" fill="none" stroke="#333" strokeWidth="0.5"/>
+              {/* Head - natural oval */}
+              <ellipse cx="50" cy="12" rx="6" ry="7" className="interactive-body"/>
+              
+              {/* Neck */}
+              <path d="M44,19 Q50,17 56,19" className="interactive-outline"/>
+              
+              {/* Torso - anatomically shaped */}
+              <path d="M37,21 Q50,20 63,21 L61,42 Q58,48 50,48 Q42,48 39,42 Z" className="interactive-body"/>
+              
+              {/* Pelvis - hip shape */}
+              <path d="M41,48 Q50,49 59,48 L57,63 Q50,64 43,63 Z" className="interactive-body"/>
+              
+              {/* Left Arm */}
+              <ellipse cx="30" cy="32" rx="4" ry="9" transform="rotate(-15 30 32)" className="interactive-body"/>
+              <ellipse cx="22" cy="45" rx="3.5" ry="8" transform="rotate(-25 22 45)" className="interactive-body"/>
+              <ellipse cx="19" cy="57" rx="2.5" ry="4" transform="rotate(-30 19 57)" className="interactive-body"/>
+              
+              {/* Right Arm */}
+              <ellipse cx="70" cy="32" rx="4" ry="9" transform="rotate(15 70 32)" className="interactive-body"/>
+              <ellipse cx="78" cy="45" rx="3.5" ry="8" transform="rotate(25 78 45)" className="interactive-body"/>
+              <ellipse cx="81" cy="57" rx="2.5" ry="4" transform="rotate(30 81 57)" className="interactive-body"/>
+              
+              {/* Left Leg */}
+              <ellipse cx="45" cy="73" rx="5" ry="12" className="interactive-body"/>
+              <ellipse cx="44" cy="90" rx="4" ry="11" className="interactive-body"/>
+              <ellipse cx="42" cy="105" rx="6" ry="3" className="interactive-body"/>
+              
+              {/* Right Leg */}
+              <ellipse cx="55" cy="73" rx="5" ry="12" className="interactive-body"/>
+              <ellipse cx="56" cy="90" rx="4" ry="11" className="interactive-body"/>
+              <ellipse cx="58" cy="105" rx="6" ry="3" className="interactive-body"/>
             </g>
           ) : (
             <g>
               {/* Back of head */}
-              <ellipse cx="50" cy="12" rx="6" ry="6" fill="none" stroke="#333" strokeWidth="0.5"/>
-              {/* Back torso */}
-              <rect x="42" y="20" width="16" height="24" rx="2" fill="none" stroke="#333" strokeWidth="0.5"/>
-              {/* Arms back */}
-              <rect x="28" y="22" width="6" height="32" rx="3" fill="none" stroke="#333" strokeWidth="0.5"/>
-              <rect x="66" y="22" width="6" height="32" rx="3" fill="none" stroke="#333" strokeWidth="0.5"/>
-              {/* Legs back */}
-              <rect x="42" y="44" width="6" height="34" rx="3" fill="none" stroke="#333" strokeWidth="0.5"/>
-              <rect x="52" y="44" width="6" height="34" rx="3" fill="none" stroke="#333" strokeWidth="0.5"/>
-              {/* Hands back */}
-              <circle cx="27" cy="52" r="3" fill="none" stroke="#333" strokeWidth="0.5"/>
-              <circle cx="73" cy="52" r="3" fill="none" stroke="#333" strokeWidth="0.5"/>
-              {/* Feet back */}
-              <ellipse cx="44" cy="75" rx="4" ry="2" fill="none" stroke="#333" strokeWidth="0.5"/>
-              <ellipse cx="56" cy="75" rx="4" ry="2" fill="none" stroke="#333" strokeWidth="0.5"/>
+              <ellipse cx="50" cy="12" rx="6" ry="7" className="interactive-body"/>
+              
+              {/* Neck back */}
+              <path d="M44,19 Q50,17 56,19" className="interactive-outline"/>
+              
+              {/* Upper back - broader at shoulders */}
+              <path d="M37,21 Q50,20 63,21 L60,40 Q50,41 40,40 Z" className="interactive-body"/>
+              
+              {/* Lower back */}
+              <path d="M40,40 Q50,41 60,40 L57,50 Q50,51 43,50 Z" className="interactive-body"/>
+              
+              {/* Buttocks */}
+              <path d="M43,50 Q50,51 57,50 L56,63 Q50,64 44,63 Z" className="interactive-body"/>
+              
+              {/* Left Arm back */}
+              <ellipse cx="30" cy="32" rx="4" ry="9" transform="rotate(-15 30 32)" className="interactive-body"/>
+              <ellipse cx="22" cy="45" rx="3.5" ry="8" transform="rotate(-25 22 45)" className="interactive-body"/>
+              <ellipse cx="19" cy="57" rx="2.5" ry="4" transform="rotate(-30 19 57)" className="interactive-body"/>
+              
+              {/* Right Arm back */}
+              <ellipse cx="70" cy="32" rx="4" ry="9" transform="rotate(15 70 32)" className="interactive-body"/>
+              <ellipse cx="78" cy="45" rx="3.5" ry="8" transform="rotate(25 78 45)" className="interactive-body"/>
+              <ellipse cx="81" cy="57" rx="2.5" ry="4" transform="rotate(30 81 57)" className="interactive-body"/>
+              
+              {/* Left Leg back */}
+              <ellipse cx="45" cy="68" rx="5" ry="11" className="interactive-body"/>
+              <ellipse cx="44" cy="83" rx="4" ry="10" className="interactive-body"/>
+              <ellipse cx="42" cy="96" rx="6" ry="3" className="interactive-body"/>
+              
+              {/* Right Leg back */}
+              <ellipse cx="55" cy="68" rx="5" ry="11" className="interactive-body"/>
+              <ellipse cx="56" cy="83" rx="4" ry="10" className="interactive-body"/>
+              <ellipse cx="58" cy="96" rx="6" ry="3" className="interactive-body"/>
             </g>
           )}
 
