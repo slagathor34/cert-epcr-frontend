@@ -1,0 +1,545 @@
+import React, { useState } from 'react';
+import {
+  Box,
+  Paper,
+  Typography,
+  Grid,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  FormControlLabel,
+  Checkbox,
+  TextField,
+  Chip,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  useTheme,
+  Badge,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  ListItemSecondaryAction,
+  IconButton,
+} from '@mui/material';
+import {
+  ExpandMore as ExpandMoreIcon,
+  Add as AddIcon,
+  Delete as DeleteIcon,
+  Edit as EditIcon,
+  CheckCircle as CheckCircleIcon,
+  Schedule as ScheduleIcon,
+  LocalHospital as MedicalIcon,
+} from '@mui/icons-material';
+import { Controller, Control, useFieldArray } from 'react-hook-form';
+import { Treatment } from '../../types/epcr';
+
+interface TreatmentChecklistProps {
+  control: Control<any>;
+  name: string;
+  label?: string;
+}
+
+const treatmentCategories = {
+  airway: {
+    label: 'Airway Management',
+    icon: MedicalIcon,
+    color: '#f44336',
+    procedures: [
+      'Manual airway positioning',
+      'Oral airway (OPA)',
+      'Nasal airway (NPA)',
+      'Bag-valve mask ventilation',
+      'Endotracheal intubation',
+      'Supraglottic airway',
+      'Cricothyrotomy',
+      'Suctioning',
+    ],
+  },
+  cpr: {
+    label: 'CPR/Resuscitation',
+    icon: CheckCircleIcon,
+    color: '#9c27b0',
+    procedures: [
+      'Chest compressions',
+      'Rescue breathing',
+      'AED/Defibrillation',
+      'Manual defibrillation',
+      'Cardioversion',
+      'External pacing',
+      'LUCAS device',
+    ],
+  },
+  'bleeding-control': {
+    label: 'Bleeding Control',
+    icon: MedicalIcon,
+    color: '#d32f2f',
+    procedures: [
+      'Direct pressure',
+      'Pressure bandage',
+      'Tourniquet',
+      'Hemostatic agents',
+      'Splinting for bleeding control',
+      'Pelvic binder',
+    ],
+  },
+  'spinal-immobilization': {
+    label: 'Spinal Immobilization',
+    icon: MedicalIcon,
+    color: '#1976d2',
+    procedures: [
+      'Cervical collar',
+      'Head blocks',
+      'Long spine board',
+      'Vacuum mattress',
+      'KED/extrication device',
+      'Log roll',
+    ],
+  },
+  medication: {
+    label: 'Medications',
+    icon: MedicalIcon,
+    color: '#388e3c',
+    procedures: [
+      'Epinephrine',
+      'Nitroglycerin',
+      'Aspirin',
+      'Albuterol',
+      'Atropine',
+      'Amiodarone',
+      'Morphine',
+      'Naloxone',
+      'Dextrose',
+      'Diphenhydramine',
+    ],
+  },
+  'iv-access': {
+    label: 'IV Access/Fluids',
+    icon: MedicalIcon,
+    color: '#0288d1',
+    procedures: [
+      'Peripheral IV',
+      'Intraosseous (IO)',
+      'Normal saline',
+      'Lactated Ringer\'s',
+      'Blood products',
+      'Central line',
+    ],
+  },
+  oxygen: {
+    label: 'Oxygen Therapy',
+    icon: MedicalIcon,
+    color: '#00796b',
+    procedures: [
+      'Nasal cannula',
+      'Non-rebreather mask',
+      'Simple face mask',
+      'Venturi mask',
+      'CPAP',
+      'BiPAP',
+    ],
+  },
+  defibrillation: {
+    label: 'Cardiac Interventions',
+    icon: CheckCircleIcon,
+    color: '#7b1fa2',
+    procedures: [
+      'AED shock',
+      'Manual defibrillation',
+      '12-lead ECG',
+      '15-lead ECG',
+      'Right-sided ECG',
+      'Continuous cardiac monitoring',
+    ],
+  },
+  other: {
+    label: 'Other Treatments',
+    icon: MedicalIcon,
+    color: '#5d4037',
+    procedures: [
+      'Splinting',
+      'Wound care',
+      'Burn care',
+      'Heat/cold therapy',
+      'Psychological support',
+      'Patient positioning',
+    ],
+  },
+};
+
+export function TreatmentChecklist({ 
+  control, 
+  name, 
+  label = 'Treatment Checklist' 
+}: TreatmentChecklistProps) {
+  const theme = useTheme();
+  const [openDialog, setOpenDialog] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [selectedProcedure, setSelectedProcedure] = useState<string>('');
+  const [customProcedure, setCustomProcedure] = useState<string>('');
+  const [treatmentTime, setTreatmentTime] = useState<string>(
+    new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' })
+  );
+  const [oxygenRate, setOxygenRate] = useState<number | ''>('');
+  const [notes, setNotes] = useState<string>('');
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+
+  const { fields, append, update, remove } = useFieldArray({
+    control,
+    name,
+  });
+
+  const handleAddTreatment = () => {
+    setSelectedCategory('');
+    setSelectedProcedure('');
+    setCustomProcedure('');
+    setTreatmentTime(new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' }));
+    setOxygenRate('');
+    setNotes('');
+    setEditingIndex(null);
+    setOpenDialog(true);
+  };
+
+  const handleEditTreatment = (treatment: Treatment, index: number) => {
+    setSelectedCategory(treatment.category);
+    setSelectedProcedure(treatment.procedure);
+    setTreatmentTime(treatment.time || '');
+    setOxygenRate(treatment.oxygenDeliveryRate || '');
+    setNotes(treatment.notes || '');
+    setEditingIndex(index);
+    setOpenDialog(true);
+  };
+
+  const handleSaveTreatment = () => {
+    const procedureName = selectedProcedure || customProcedure;
+    
+    if (!selectedCategory || !procedureName) return;
+
+    const treatment: Treatment = {
+      category: selectedCategory as Treatment['category'],
+      procedure: procedureName,
+      time: treatmentTime,
+      administered: true,
+      ...(selectedCategory === 'oxygen' && oxygenRate && { oxygenDeliveryRate: Number(oxygenRate) }),
+      ...(notes && { notes }),
+    };
+
+    if (editingIndex !== null) {
+      update(editingIndex, treatment);
+    } else {
+      append(treatment);
+    }
+
+    setOpenDialog(false);
+  };
+
+  const handleDeleteTreatment = (index: number) => {
+    remove(index);
+  };
+
+  const toggleTreatmentStatus = (index: number) => {
+    const treatment = fields[index] as Treatment;
+    update(index, { ...treatment, administered: !treatment.administered });
+  };
+
+  const getTreatmentsByCategory = (categoryKey: string) => {
+    return fields.filter((field: any) => field.category === categoryKey);
+  };
+
+  const getTotalTreatmentsCount = () => {
+    return fields.length;
+  };
+
+  const getAdministeredCount = () => {
+    return fields.filter((field: any) => field.administered).length;
+  };
+
+  return (
+    <Paper 
+      elevation={2} 
+      sx={{ 
+        p: 3, 
+        mb: 2,
+        '@media print': {
+          boxShadow: 'none',
+          border: '1px solid #000',
+          pageBreakInside: 'avoid',
+        }
+      }}
+    >
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <Typography variant="h6">
+          {label}
+        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Chip
+            label={`${getAdministeredCount()}/${getTotalTreatmentsCount()} Completed`}
+            color={getAdministeredCount() > 0 ? 'success' : 'default'}
+            variant="outlined"
+          />
+          <Button
+            variant="contained"
+            size="small"
+            startIcon={<AddIcon />}
+            onClick={handleAddTreatment}
+            sx={{ 
+              '@media print': { 
+                display: 'none' 
+              } 
+            }}
+          >
+            Add Treatment
+          </Button>
+        </Box>
+      </Box>
+
+      {/* Treatment Categories */}
+      {Object.entries(treatmentCategories).map(([categoryKey, category]) => {
+        const categoryTreatments = getTreatmentsByCategory(categoryKey);
+        const completedCount = categoryTreatments.filter((t: any) => t.administered).length;
+        
+        return (
+          <Accordion key={categoryKey} sx={{ mb: 1 }}>
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              sx={{
+                backgroundColor: theme.palette.grey[50],
+                '&:hover': {
+                  backgroundColor: theme.palette.grey[100],
+                },
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
+                <category.icon sx={{ color: category.color }} />
+                <Typography variant="subtitle1" fontWeight="bold">
+                  {category.label}
+                </Typography>
+                {categoryTreatments.length > 0 && (
+                  <Badge
+                    badgeContent={`${completedCount}/${categoryTreatments.length}`}
+                    color={completedCount === categoryTreatments.length && completedCount > 0 ? 'success' : 'primary'}
+                    sx={{ ml: 'auto' }}
+                  >
+                    <Chip
+                      size="small"
+                      label={`${categoryTreatments.length} treatments`}
+                      variant="outlined"
+                    />
+                  </Badge>
+                )}
+              </Box>
+            </AccordionSummary>
+            <AccordionDetails>
+              {categoryTreatments.length === 0 ? (
+                <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                  No treatments recorded for this category
+                </Typography>
+              ) : (
+                <List dense>
+                  {categoryTreatments.map((treatment: any, treatmentIndex) => {
+                    const globalIndex = fields.findIndex((field: any) => 
+                      field.category === treatment.category && field.procedure === treatment.procedure && field.time === treatment.time
+                    );
+                    
+                    return (
+                      <ListItem key={`${treatment.procedure}-${treatment.time}`} divider>
+                        <ListItemIcon>
+                          <Checkbox
+                            checked={treatment.administered}
+                            onChange={() => toggleTreatmentStatus(globalIndex)}
+                            color="primary"
+                          />
+                        </ListItemIcon>
+                        <ListItemText
+                          primary={
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <Typography variant="body2" fontWeight="bold">
+                                {treatment.procedure}
+                              </Typography>
+                              {treatment.time && (
+                                <Chip
+                                  label={treatment.time}
+                                  size="small"
+                                  icon={<ScheduleIcon />}
+                                  variant="outlined"
+                                />
+                              )}
+                              {treatment.oxygenDeliveryRate && (
+                                <Chip
+                                  label={`${treatment.oxygenDeliveryRate}L/min`}
+                                  size="small"
+                                  color="info"
+                                  variant="outlined"
+                                />
+                              )}
+                            </Box>
+                          }
+                          secondary={treatment.notes}
+                        />
+                        <ListItemSecondaryAction 
+                          sx={{ 
+                            '@media print': { 
+                              display: 'none' 
+                            } 
+                          }}
+                        >
+                          <IconButton
+                            size="small"
+                            onClick={() => handleEditTreatment(treatment, globalIndex)}
+                            sx={{ mr: 1 }}
+                          >
+                            <EditIcon fontSize="small" />
+                          </IconButton>
+                          <IconButton
+                            size="small"
+                            onClick={() => handleDeleteTreatment(globalIndex)}
+                            color="error"
+                          >
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </ListItemSecondaryAction>
+                      </ListItem>
+                    );
+                  })}
+                </List>
+              )}
+            </AccordionDetails>
+          </Accordion>
+        );
+      })}
+
+      {/* Treatment Dialog */}
+      <Dialog 
+        open={openDialog} 
+        onClose={() => setOpenDialog(false)}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>
+          {editingIndex !== null ? 'Edit Treatment' : 'Add Treatment'}
+        </DialogTitle>
+        <DialogContent>
+          <Grid container spacing={2} sx={{ mt: 1 }}>
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth>
+                <InputLabel>Category</InputLabel>
+                <Select
+                  value={selectedCategory}
+                  label="Category"
+                  onChange={(e) => {
+                    setSelectedCategory(e.target.value);
+                    setSelectedProcedure('');
+                    setCustomProcedure('');
+                  }}
+                >
+                  {Object.entries(treatmentCategories).map(([key, category]) => (
+                    <MenuItem key={key} value={key}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <category.icon sx={{ color: category.color, fontSize: 20 }} />
+                        {category.label}
+                      </Box>
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Time"
+                type="time"
+                value={treatmentTime}
+                onChange={(e) => setTreatmentTime(e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                inputProps={{ step: 60 }}
+              />
+            </Grid>
+
+            {selectedCategory && (
+              <Grid item xs={12}>
+                <FormControl fullWidth>
+                  <InputLabel>Procedure</InputLabel>
+                  <Select
+                    value={selectedProcedure}
+                    label="Procedure"
+                    onChange={(e) => {
+                      setSelectedProcedure(e.target.value);
+                      setCustomProcedure('');
+                    }}
+                  >
+                    {treatmentCategories[selectedCategory as keyof typeof treatmentCategories]?.procedures.map((procedure) => (
+                      <MenuItem key={procedure} value={procedure}>
+                        {procedure}
+                      </MenuItem>
+                    ))}
+                    <MenuItem value="custom">
+                      <em>Custom procedure...</em>
+                    </MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+            )}
+
+            {selectedProcedure === 'custom' && (
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Custom Procedure"
+                  value={customProcedure}
+                  onChange={(e) => setCustomProcedure(e.target.value)}
+                  placeholder="Enter custom procedure name"
+                />
+              </Grid>
+            )}
+
+            {selectedCategory === 'oxygen' && (
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Oxygen Delivery Rate"
+                  type="number"
+                  value={oxygenRate}
+                  onChange={(e) => setOxygenRate(e.target.value === '' ? '' : Number(e.target.value))}
+                  InputProps={{
+                    endAdornment: <Typography variant="body2">L/min</Typography>,
+                  }}
+                  inputProps={{ min: 0, max: 15, step: 0.5 }}
+                />
+              </Grid>
+            )}
+
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Notes (Optional)"
+                multiline
+                rows={2}
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Additional notes about the treatment..."
+              />
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenDialog(false)}>Cancel</Button>
+          <Button 
+            onClick={handleSaveTreatment} 
+            variant="contained"
+            disabled={!selectedCategory || (!selectedProcedure && !customProcedure)}
+          >
+            {editingIndex !== null ? 'Update' : 'Add'} Treatment
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Paper>
+  );
+}

@@ -1,0 +1,515 @@
+import React, { useState } from 'react';
+import {
+  Box,
+  Paper,
+  Typography,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  FormControlLabel,
+  Checkbox,
+  TextField,
+  Grid,
+  Chip,
+  LinearProgress,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  useTheme,
+  Alert,
+} from '@mui/material';
+import {
+  ExpandMore as ExpandMoreIcon,
+  AccessTime as TimeIcon,
+  Air as AirwayIcon,
+  Favorite as CPRIcon,
+  LocalHospital as MedicalIcon,
+  Build as ProcedureIcon,
+  Healing as ImmobilizationIcon,
+  MoreHoriz as OtherIcon,
+  CheckCircle as CheckIcon,
+} from '@mui/icons-material';
+import { Controller, Control } from 'react-hook-form';
+import { TreatmentCategories, TreatmentOption } from '../../types/epcr';
+
+interface TreatmentChecklistProps {
+  control: Control<any>;
+  name: string;
+  label?: string;
+  compact?: boolean;
+}
+
+const defaultTreatments: TreatmentCategories = {
+  airwayManagement: [
+    { id: 'oral-airway', name: 'Oral Airway (OPA)', checked: false },
+    { id: 'nasal-airway', name: 'Nasal Airway (NPA)', checked: false },
+    { id: 'bag-mask', name: 'Bag-Mask Ventilation', checked: false },
+    { id: 'oxygen', name: 'Oxygen Administration', checked: false, details: 'Flow Rate: ___ L/min' },
+    { id: 'suction', name: 'Airway Suction', checked: false },
+    { id: 'head-tilt', name: 'Head Tilt-Chin Lift', checked: false },
+    { id: 'jaw-thrust', name: 'Jaw Thrust Maneuver', checked: false },
+  ],
+  breathing: [
+    { id: 'assisted-ventilation', name: 'Assisted Ventilation', checked: false },
+    { id: 'chest-seal', name: 'Chest Seal (Occlusive Dressing)', checked: false },
+    { id: 'needle-decompression', name: 'Needle Chest Decompression', checked: false },
+    { id: 'positioning', name: 'Patient Positioning for Breathing', checked: false },
+  ],
+  circulation: [
+    { id: 'cpr', name: 'CPR', checked: false },
+    { id: 'aed', name: 'AED/Defibrillation', checked: false },
+    { id: 'bleeding-control', name: 'Bleeding Control', checked: false },
+    { id: 'pressure-dressing', name: 'Pressure Dressing', checked: false },
+    { id: 'tourniquet', name: 'Tourniquet Application', checked: false },
+    { id: 'shock-position', name: 'Shock Position', checked: false },
+    { id: 'iv-access', name: 'IV Access', checked: false },
+    { id: 'fluid-resuscitation', name: 'Fluid Resuscitation', checked: false },
+  ],
+  medications: [
+    { id: 'aspirin', name: 'Aspirin', checked: false },
+    { id: 'nitroglycerin', name: 'Nitroglycerin', checked: false },
+    { id: 'albuterol', name: 'Albuterol/Bronchodilator', checked: false },
+    { id: 'epi-pen', name: 'Epinephrine Auto-injector', checked: false },
+    { id: 'naloxone', name: 'Naloxone (Narcan)', checked: false },
+    { id: 'glucose', name: 'Oral Glucose', checked: false },
+  ],
+  procedures: [
+    { id: 'vital-signs', name: 'Vital Signs Assessment', checked: false },
+    { id: 'blood-glucose', name: 'Blood Glucose Check', checked: false },
+    { id: 'cardiac-monitor', name: 'Cardiac Monitoring', checked: false },
+    { id: 'pulse-oximetry', name: 'Pulse Oximetry', checked: false },
+    { id: 'temperature', name: 'Temperature Assessment', checked: false },
+  ],
+  immobilization: [
+    { id: 'spinal-board', name: 'Spinal Immobilization (Backboard)', checked: false },
+    { id: 'c-collar', name: 'Cervical Collar', checked: false },
+    { id: 'splinting', name: 'Extremity Splinting', checked: false },
+    { id: 'head-blocks', name: 'Head Immobilization Blocks', checked: false },
+    { id: 'straps', name: 'Patient Restraint Straps', checked: false },
+  ],
+  other: [
+    { id: 'comfort-measures', name: 'Comfort Measures', checked: false },
+    { id: 'emotional-support', name: 'Emotional Support', checked: false },
+    { id: 'family-notification', name: 'Family Notification', checked: false },
+    { id: 'law-enforcement', name: 'Law Enforcement Contact', checked: false },
+    { id: 'medical-direction', name: 'Medical Direction Contact', checked: false },
+  ],
+};
+
+const categoryIcons = {
+  airwayManagement: <AirwayIcon />,
+  breathing: <AirwayIcon />,
+  circulation: <CPRIcon />,
+  medications: <MedicalIcon />,
+  procedures: <ProcedureIcon />,
+  immobilization: <ImmobilizationIcon />,
+  other: <OtherIcon />,
+};
+
+const categoryLabels = {
+  airwayManagement: 'Airway Management',
+  breathing: 'Breathing Support',
+  circulation: 'Circulation/CPR',
+  medications: 'Medications',
+  procedures: 'Procedures',
+  immobilization: 'Immobilization',
+  other: 'Other Interventions',
+};
+
+const criticalTreatments = [
+  'cpr', 'aed', 'bag-mask', 'needle-decompression', 'tourniquet', 'epi-pen', 'naloxone'
+];
+
+export function TreatmentChecklist({ 
+  control, 
+  name, 
+  label = 'Treatment Checklist',
+  compact = false
+}: TreatmentChecklistProps) {
+  const theme = useTheme();
+  const [timeDialog, setTimeDialog] = useState<{ open: boolean; treatmentId: string; time: string }>({
+    open: false,
+    treatmentId: '',
+    time: '',
+  });
+
+  const getCurrentTime = () => {
+    return new Date().toLocaleTimeString('en-US', { 
+      hour12: false, 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    });
+  };
+
+  const getCategoryProgress = (treatments: TreatmentOption[]) => {
+    const total = treatments.length;
+    const completed = treatments.filter(t => t.checked).length;
+    return { completed, total, percentage: total > 0 ? (completed / total) * 100 : 0 };
+  };
+
+  const getTotalProgress = (allTreatments: TreatmentCategories) => {
+    let total = 0;
+    let completed = 0;
+    
+    Object.values(allTreatments).forEach(treatments => {
+      total += treatments.length;
+      completed += treatments.filter(t => t.checked).length;
+    });
+    
+    return { completed, total, percentage: total > 0 ? (completed / total) * 100 : 0 };
+  };
+
+  if (compact) {
+    return (
+      <Controller
+        name={name}
+        control={control}
+        defaultValue={defaultTreatments}
+        render={({ field }) => {
+          const progress = getTotalProgress(field.value);
+          
+          return (
+            <Box sx={{ 
+              border: '1px solid', 
+              borderColor: theme.palette.divider, 
+              borderRadius: 1, 
+              p: 2,
+              backgroundColor: theme.palette.background.paper,
+              '@media print': {
+                border: '1px solid #000',
+              }
+            }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
+                  Treatment Progress
+                </Typography>
+                <Chip 
+                  label={`${progress.completed}/${progress.total}`}
+                  color={progress.percentage > 50 ? 'success' : progress.percentage > 0 ? 'warning' : 'default'}
+                  size="small"
+                />
+              </Box>
+              
+              <LinearProgress 
+                variant="determinate" 
+                value={progress.percentage} 
+                sx={{ mb: 2, height: 8, borderRadius: 4 }}
+              />
+              
+              <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1, maxHeight: 150, overflowY: 'auto' }}>
+                {Object.entries(field.value).map(([categoryKey, treatments]) => {
+                  const categoryProgress = getCategoryProgress(treatments);
+                  return (
+                    <Box key={categoryKey} sx={{ fontSize: '0.75rem' }}>
+                      <Typography variant="caption" sx={{ fontWeight: 'bold' }}>
+                        {categoryLabels[categoryKey as keyof TreatmentCategories]}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {' '}({categoryProgress.completed}/{categoryProgress.total})
+                      </Typography>
+                    </Box>
+                  );
+                })}
+              </Box>
+            </Box>
+          );
+        }}
+      />
+    );
+  }
+
+  return (
+    <Paper 
+      elevation={2} 
+      sx={{ 
+        p: 3, 
+        mb: 2,
+        '@media print': {
+          boxShadow: 'none',
+          border: '1px solid #000',
+          pageBreakInside: 'avoid',
+        }
+      }}
+    >
+      <Typography variant="h6" gutterBottom>
+        {label}
+      </Typography>
+
+      <Controller
+        name={name}
+        control={control}
+        defaultValue={defaultTreatments}
+        render={({ field }) => {
+          const totalProgress = getTotalProgress(field.value);
+          const criticalCompleted = Object.values(field.value)
+            .flat()
+            .filter(t => criticalTreatments.includes(t.id) && t.checked).length;
+
+          const updateTreatment = (categoryKey: keyof TreatmentCategories, treatmentId: string, updates: Partial<TreatmentOption>) => {
+            const updatedCategory = field.value[categoryKey].map((treatment: TreatmentOption) =>
+              treatment.id === treatmentId ? { ...treatment, ...updates } : treatment
+            );
+            
+            field.onChange({
+              ...field.value,
+              [categoryKey]: updatedCategory
+            });
+          };
+
+          return (
+            <Box>
+              {/* Progress Overview */}
+              <Box sx={{ mb: 3, p: 2, backgroundColor: theme.palette.grey[50], borderRadius: 1 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                    Treatment Progress
+                  </Typography>
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    <Chip 
+                      label={`${totalProgress.completed}/${totalProgress.total} Total`}
+                      color={totalProgress.percentage > 75 ? 'success' : totalProgress.percentage > 25 ? 'warning' : 'default'}
+                    />
+                    {criticalCompleted > 0 && (
+                      <Chip 
+                        label={`${criticalCompleted} Critical`}
+                        color="error"
+                        variant="outlined"
+                      />
+                    )}
+                  </Box>
+                </Box>
+                <LinearProgress 
+                  variant="determinate" 
+                  value={totalProgress.percentage} 
+                  sx={{ height: 8, borderRadius: 4 }}
+                />
+              </Box>
+
+              {/* Critical Treatments Alert */}
+              {criticalCompleted > 0 && (
+                <Alert severity="warning" sx={{ mb: 2 }}>
+                  <Typography variant="body2">
+                    <strong>{criticalCompleted} critical treatments</strong> have been administered. 
+                    Ensure proper documentation and monitoring.
+                  </Typography>
+                </Alert>
+              )}
+
+              {/* Treatment Categories */}
+              {Object.entries(field.value).map(([categoryKey, treatments]) => {
+                const categoryProgress = getCategoryProgress(treatments);
+                
+                return (
+                  <Accordion key={categoryKey} sx={{ mb: 1 }}>
+                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
+                        {categoryIcons[categoryKey as keyof typeof categoryIcons]}
+                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', flexGrow: 1 }}>
+                          {categoryLabels[categoryKey as keyof TreatmentCategories]}
+                        </Typography>
+                        <Chip 
+                          label={`${categoryProgress.completed}/${categoryProgress.total}`}
+                          size="small"
+                          color={categoryProgress.percentage === 100 ? 'success' : categoryProgress.percentage > 0 ? 'warning' : 'default'}
+                        />
+                        <Box sx={{ minWidth: 100 }}>
+                          <LinearProgress 
+                            variant="determinate" 
+                            value={categoryProgress.percentage}
+                            size="small"
+                            sx={{ height: 4 }}
+                          />
+                        </Box>
+                      </Box>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                      <Grid container spacing={2}>
+                        {treatments.map((treatment: TreatmentOption) => (
+                          <Grid item xs={12} sm={6} md={4} key={treatment.id}>
+                            <Box sx={{ 
+                              p: 1.5, 
+                              border: '1px solid', 
+                              borderColor: treatment.checked ? theme.palette.success.main : theme.palette.divider,
+                              borderRadius: 1,
+                              backgroundColor: treatment.checked ? theme.palette.success.light + '10' : 'transparent',
+                              position: 'relative'
+                            }}>
+                              {criticalTreatments.includes(treatment.id) && (
+                                <Chip
+                                  label="Critical"
+                                  size="small"
+                                  color="error"
+                                  sx={{ 
+                                    position: 'absolute', 
+                                    top: -8, 
+                                    right: 8,
+                                    fontSize: '0.6rem'
+                                  }}
+                                />
+                              )}
+                              
+                              <FormControlLabel
+                                control={
+                                  <Checkbox
+                                    checked={treatment.checked}
+                                    onChange={(e) => {
+                                      const updates: Partial<TreatmentOption> = { 
+                                        checked: e.target.checked 
+                                      };
+                                      
+                                      // Add timestamp when checking critical treatments
+                                      if (e.target.checked && criticalTreatments.includes(treatment.id)) {
+                                        updates.time = getCurrentTime();
+                                      }
+                                      
+                                      updateTreatment(categoryKey as keyof TreatmentCategories, treatment.id, updates);
+                                    }}
+                                    icon={<Box />}
+                                    checkedIcon={<CheckIcon />}
+                                  />
+                                }
+                                label={
+                                  <Box>
+                                    <Typography variant="body2" sx={{ fontWeight: treatment.checked ? 'bold' : 'normal' }}>
+                                      {treatment.name}
+                                    </Typography>
+                                    {treatment.details && (
+                                      <Typography variant="caption" color="text.secondary">
+                                        {treatment.details}
+                                      </Typography>
+                                    )}
+                                  </Box>
+                                }
+                                sx={{ width: '100%', m: 0 }}
+                              />
+                              
+                              {treatment.checked && (
+                                <Box sx={{ mt: 1, display: 'flex', gap: 1, alignItems: 'center' }}>
+                                  <TextField
+                                    size="small"
+                                    type="time"
+                                    value={treatment.time || ''}
+                                    onChange={(e) => {
+                                      updateTreatment(categoryKey as keyof TreatmentCategories, treatment.id, { 
+                                        time: e.target.value 
+                                      });
+                                    }}
+                                    InputProps={{
+                                      startAdornment: <TimeIcon sx={{ fontSize: '0.875rem', mr: 0.5 }} />
+                                    }}
+                                    sx={{ flexGrow: 1 }}
+                                  />
+                                  
+                                  {treatment.id === 'oxygen' && (
+                                    <TextField
+                                      size="small"
+                                      placeholder="L/min"
+                                      value={treatment.details?.replace('Flow Rate: ', '').replace(' L/min', '') || ''}
+                                      onChange={(e) => {
+                                        updateTreatment(categoryKey as keyof TreatmentCategories, treatment.id, { 
+                                          details: `Flow Rate: ${e.target.value} L/min`
+                                        });
+                                      }}
+                                      sx={{ width: 80 }}
+                                    />
+                                  )}
+                                </Box>
+                              )}
+                              
+                              {treatment.checked && treatment.time && (
+                                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                                  Administered: {treatment.time}
+                                </Typography>
+                              )}
+                            </Box>
+                          </Grid>
+                        ))}
+                      </Grid>
+                    </AccordionDetails>
+                  </Accordion>
+                );
+              })}
+
+              {/* Time Dialog for Manual Entry */}
+              <Dialog 
+                open={timeDialog.open} 
+                onClose={() => setTimeDialog({ ...timeDialog, open: false })}
+                maxWidth="xs"
+                fullWidth
+              >
+                <DialogTitle>Set Treatment Time</DialogTitle>
+                <DialogContent>
+                  <TextField
+                    autoFocus
+                    type="time"
+                    fullWidth
+                    value={timeDialog.time}
+                    onChange={(e) => setTimeDialog({ ...timeDialog, time: e.target.value })}
+                    sx={{ mt: 1 }}
+                  />
+                </DialogContent>
+                <DialogActions>
+                  <Button onClick={() => setTimeDialog({ ...timeDialog, open: false })}>
+                    Cancel
+                  </Button>
+                  <Button 
+                    variant="contained"
+                    onClick={() => {
+                      // Find and update the treatment
+                      Object.entries(field.value).forEach(([categoryKey, treatments]) => {
+                        const treatment = treatments.find((t: TreatmentOption) => t.id === timeDialog.treatmentId);
+                        if (treatment) {
+                          updateTreatment(categoryKey as keyof TreatmentCategories, treatment.id, { 
+                            time: timeDialog.time 
+                          });
+                        }
+                      });
+                      setTimeDialog({ open: false, treatmentId: '', time: '' });
+                    }}
+                  >
+                    Set Time
+                  </Button>
+                </DialogActions>
+              </Dialog>
+
+              {/* Summary Statistics */}
+              <Box sx={{ mt: 3, p: 2, backgroundColor: theme.palette.grey[50], borderRadius: 1 }}>
+                <Typography variant="subtitle2" gutterBottom>
+                  Treatment Summary
+                </Typography>
+                <Grid container spacing={2}>
+                  {Object.entries(field.value).map(([categoryKey, treatments]) => {
+                    const progress = getCategoryProgress(treatments);
+                    const criticalInCategory = treatments.filter((t: TreatmentOption) => 
+                      criticalTreatments.includes(t.id) && t.checked
+                    ).length;
+                    
+                    return (
+                      <Grid item xs={6} md={3} key={categoryKey}>
+                        <Box sx={{ textAlign: 'center' }}>
+                          <Typography variant="caption" color="text.secondary">
+                            {categoryLabels[categoryKey as keyof TreatmentCategories]}
+                          </Typography>
+                          <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                            {progress.completed}/{progress.total}
+                          </Typography>
+                          {criticalInCategory > 0 && (
+                            <Typography variant="caption" sx={{ color: theme.palette.error.main }}>
+                              {criticalInCategory} critical
+                            </Typography>
+                          )}
+                        </Box>
+                      </Grid>
+                    );
+                  })}
+                </Grid>
+              </Box>
+            </Box>
+          );
+        }}
+      />
+    </Paper>
+  );
+}

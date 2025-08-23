@@ -1,0 +1,476 @@
+import React, { useState } from 'react';
+import {
+  Box,
+  Paper,
+  Typography,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TextField,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  IconButton,
+  Button,
+  useTheme,
+  Chip,
+} from '@mui/material';
+import {
+  Add as AddIcon,
+  Delete as DeleteIcon,
+  AccessTime as TimeIcon,
+} from '@mui/icons-material';
+import { Controller, Control, useFieldArray } from 'react-hook-form';
+import { VitalSigns } from '../../types/epcr';
+
+interface VitalSignsTimeTableProps {
+  control: Control<any>;
+  name: string;
+  label?: string;
+}
+
+const locOptions = [
+  { value: 'A', label: 'A - Alert', color: '#4caf50' },
+  { value: 'V', label: 'V - Verbal', color: '#ff9800' },
+  { value: 'P', label: 'P - Pain', color: '#f44336' },
+  { value: 'U', label: 'U - Unresponsive', color: '#9c27b0' },
+];
+
+const pulseRegularityOptions = [
+  { value: 'regular', label: 'Regular' },
+  { value: 'irregular', label: 'Irregular' },
+];
+
+const pulseStrengthOptions = [
+  { value: 'strong', label: 'Strong' },
+  { value: 'weak', label: 'Weak' },
+];
+
+const respiratoryQualityOptions = [
+  { value: 'normal', label: 'Normal' },
+  { value: 'labored', label: 'Labored' },
+  { value: 'rapid', label: 'Rapid' },
+  { value: 'gasping', label: 'Gasping' },
+  { value: 'shallow', label: 'Shallow' },
+  { value: 'deep', label: 'Deep' },
+];
+
+const defaultVitalSigns: Partial<VitalSigns> = {
+  time: new Date().toLocaleTimeString('en-US', { 
+    hour12: false, 
+    hour: '2-digit', 
+    minute: '2-digit' 
+  }),
+  loc: undefined,
+  systolicBP: undefined,
+  diastolicBP: undefined,
+  heartRate: undefined,
+  pulseRegularity: 'regular',
+  pulseStrength: 'strong',
+  respiratoryRate: undefined,
+  respiratoryQuality: 'normal',
+  temperature: undefined,
+  oxygenSaturation: undefined,
+  treatment: '',
+};
+
+export function VitalSignsTimeTable({ 
+  control, 
+  name, 
+  label = 'Vital Signs Time Table' 
+}: VitalSignsTimeTableProps) {
+  const theme = useTheme();
+  
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name,
+  });
+
+  const addVitalSigns = () => {
+    append({
+      ...defaultVitalSigns,
+      time: new Date().toLocaleTimeString('en-US', { 
+        hour12: false, 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      })
+    });
+  };
+
+  const removeVitalSigns = (index: number) => {
+    remove(index);
+  };
+
+  const getLocColor = (loc: string) => {
+    const option = locOptions.find(opt => opt.value === loc);
+    return option?.color || theme.palette.text.primary;
+  };
+
+  return (
+    <Paper 
+      elevation={2} 
+      sx={{ 
+        p: 3, 
+        mb: 2,
+        '@media print': {
+          boxShadow: 'none',
+          border: '1px solid #000',
+          pageBreakInside: 'avoid',
+        }
+      }}
+    >
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <Typography variant="h6">
+          {label}
+        </Typography>
+        <Button
+          variant="contained"
+          size="small"
+          startIcon={<AddIcon />}
+          onClick={addVitalSigns}
+          sx={{ 
+            '@media print': { 
+              display: 'none' 
+            } 
+          }}
+        >
+          Add Entry
+        </Button>
+      </Box>
+
+      {fields.length === 0 ? (
+        <Box sx={{ textAlign: 'center', py: 4 }}>
+          <TimeIcon sx={{ fontSize: 48, color: theme.palette.grey[400], mb: 2 }} />
+          <Typography variant="body1" color="text.secondary" gutterBottom>
+            No vital signs recorded
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Click "Add Entry" to record the first set of vital signs
+          </Typography>
+        </Box>
+      ) : (
+        <TableContainer 
+          sx={{ 
+            maxHeight: '600px',
+            '@media print': {
+              maxHeight: 'none',
+            }
+          }}
+        >
+          <Table size="small" stickyHeader>
+            <TableHead>
+              <TableRow>
+                <TableCell sx={{ fontWeight: 'bold', minWidth: 80, fontSize: '0.75rem', border: '1px solid #000' }}>Time</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', minWidth: 80, fontSize: '0.75rem', border: '1px solid #000' }}>L.O.C. (A V P U)</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', minWidth: 80, fontSize: '0.75rem', border: '1px solid #000' }}>B/P</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', minWidth: 120, fontSize: '0.75rem', border: '1px solid #000' }}>Pulse (Regular/Irregular, Strong/Weak)</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', minWidth: 140, fontSize: '0.75rem', border: '1px solid #000' }}>Respirations (Normal/Labored/Rapid/Gasping/Shallow/Deep)</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', minWidth: 80, fontSize: '0.75rem', border: '1px solid #000' }}>SpO2</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', minWidth: 80, fontSize: '0.75rem', border: '1px solid #000' }}>Temp</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', minWidth: 120, fontSize: '0.75rem', border: '1px solid #000' }}>Treatment</TableCell>
+                <TableCell 
+                  sx={{ 
+                    fontWeight: 'bold', 
+                    minWidth: 60,
+                    '@media print': { 
+                      display: 'none' 
+                    } 
+                  }}
+                >
+                  Action
+                </TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {fields.map((field: any, index) => (
+                <TableRow key={field.id} hover>
+                  {/* Time */}
+                  <TableCell sx={{ border: '1px solid #000' }}>
+                    <Controller
+                      name={`${name}.${index}.time`}
+                      control={control}
+                      render={({ field: timeField }) => (
+                        <TextField
+                          {...timeField}
+                          type="time"
+                          size="small"
+                          variant="outlined"
+                          inputProps={{
+                            step: 60,
+                          }}
+                          sx={{ minWidth: 80, fontSize: '0.75rem' }}
+                        />
+                      )}
+                    />
+                  </TableCell>
+
+                  {/* LOC */}
+                  <TableCell sx={{ border: '1px solid #000' }}>
+                    <Controller
+                      name={`${name}.${index}.loc`}
+                      control={control}
+                      render={({ field: locField }) => (
+                        <FormControl size="small" sx={{ minWidth: 80 }}>
+                          <Select
+                            {...locField}
+                            displayEmpty
+                            variant="outlined"
+                            sx={{ fontSize: '0.75rem' }}
+                          >
+                            <MenuItem value="">
+                              <em>None</em>
+                            </MenuItem>
+                            {locOptions.map((option) => (
+                              <MenuItem key={option.value} value={option.value}>
+                                {option.value}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                      )}
+                    />
+                  </TableCell>
+
+                  {/* Blood Pressure */}
+                  <TableCell sx={{ border: '1px solid #000' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                      <Controller
+                        name={`${name}.${index}.systolicBP`}
+                        control={control}
+                        render={({ field: systolicField }) => (
+                          <TextField
+                            {...systolicField}
+                            type="number"
+                            size="small"
+                            variant="outlined"
+                            placeholder="120"
+                            inputProps={{ min: 0, max: 300 }}
+                            sx={{ width: 60 }}
+                          />
+                        )}
+                      />
+                      <Typography variant="body2">/</Typography>
+                      <Controller
+                        name={`${name}.${index}.diastolicBP`}
+                        control={control}
+                        render={({ field: diastolicField }) => (
+                          <TextField
+                            {...diastolicField}
+                            type="number"
+                            size="small"
+                            variant="outlined"
+                            placeholder="80"
+                            inputProps={{ min: 0, max: 200 }}
+                            sx={{ width: 60 }}
+                          />
+                        )}
+                      />
+                    </Box>
+                  </TableCell>
+
+                  {/* Pulse */}
+                  <TableCell sx={{ border: '1px solid #000' }}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                      <Controller
+                        name={`${name}.${index}.heartRate`}
+                        control={control}
+                        render={({ field: heartRateField }) => (
+                          <TextField
+                            {...heartRateField}
+                            type="number"
+                            size="small"
+                            variant="outlined"
+                            placeholder="Rate"
+                            inputProps={{ min: 0, max: 300 }}
+                            sx={{ width: 80 }}
+                          />
+                        )}
+                      />
+                      <Box sx={{ display: 'flex', gap: 0.5 }}>
+                        <Controller
+                          name={`${name}.${index}.pulseRegularity`}
+                          control={control}
+                          render={({ field: regularityField }) => (
+                            <FormControl size="small">
+                              <Select
+                                {...regularityField}
+                                variant="outlined"
+                                sx={{ fontSize: '0.75rem', minWidth: 70 }}
+                              >
+                                {pulseRegularityOptions.map((option) => (
+                                  <MenuItem key={option.value} value={option.value}>
+                                    <Typography variant="caption">{option.label}</Typography>
+                                  </MenuItem>
+                                ))}
+                              </Select>
+                            </FormControl>
+                          )}
+                        />
+                        <Controller
+                          name={`${name}.${index}.pulseStrength`}
+                          control={control}
+                          render={({ field: strengthField }) => (
+                            <FormControl size="small">
+                              <Select
+                                {...strengthField}
+                                variant="outlined"
+                                sx={{ fontSize: '0.75rem', minWidth: 60 }}
+                              >
+                                {pulseStrengthOptions.map((option) => (
+                                  <MenuItem key={option.value} value={option.value}>
+                                    <Typography variant="caption">{option.label}</Typography>
+                                  </MenuItem>
+                                ))}
+                              </Select>
+                            </FormControl>
+                          )}
+                        />
+                      </Box>
+                    </Box>
+                  </TableCell>
+
+                  {/* Respirations */}
+                  <TableCell sx={{ border: '1px solid #000' }}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                      <Controller
+                        name={`${name}.${index}.respiratoryRate`}
+                        control={control}
+                        render={({ field: respRateField }) => (
+                          <TextField
+                            {...respRateField}
+                            type="number"
+                            size="small"
+                            variant="outlined"
+                            placeholder="Rate"
+                            inputProps={{ min: 0, max: 100 }}
+                            sx={{ width: 80 }}
+                          />
+                        )}
+                      />
+                      <Controller
+                        name={`${name}.${index}.respiratoryQuality`}
+                        control={control}
+                        render={({ field: qualityField }) => (
+                          <FormControl size="small">
+                            <Select
+                              {...qualityField}
+                              variant="outlined"
+                              sx={{ fontSize: '0.75rem', minWidth: 80 }}
+                            >
+                              {respiratoryQualityOptions.map((option) => (
+                                <MenuItem key={option.value} value={option.value}>
+                                  <Typography variant="caption">{option.label}</Typography>
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          </FormControl>
+                        )}
+                      />
+                    </Box>
+                  </TableCell>
+
+                  {/* SpO2 */}
+                  <TableCell sx={{ border: '1px solid #000' }}>
+                    <Controller
+                      name={`${name}.${index}.oxygenSaturation`}
+                      control={control}
+                      render={({ field: spo2Field }) => (
+                        <TextField
+                          {...spo2Field}
+                          type="number"
+                          size="small"
+                          variant="outlined"
+                          placeholder="98"
+                          inputProps={{ min: 0, max: 100 }}
+                          InputProps={{
+                            endAdornment: <Typography variant="caption">%</Typography>,
+                          }}
+                          sx={{ width: 80 }}
+                        />
+                      )}
+                    />
+                  </TableCell>
+
+                  {/* Temperature */}
+                  <TableCell sx={{ border: '1px solid #000' }}>
+                    <Controller
+                      name={`${name}.${index}.temperature`}
+                      control={control}
+                      render={({ field: tempField }) => (
+                        <TextField
+                          {...tempField}
+                          type="number"
+                          size="small"
+                          variant="outlined"
+                          placeholder="98.6"
+                          inputProps={{ step: 0.1, min: 90, max: 110 }}
+                          InputProps={{
+                            endAdornment: <Typography variant="caption">°F</Typography>,
+                          }}
+                          sx={{ width: 80, fontSize: '0.75rem' }}
+                        />
+                      )}
+                    />
+                  </TableCell>
+
+                  {/* Treatment */}
+                  <TableCell sx={{ border: '1px solid #000' }}>
+                    <Controller
+                      name={`${name}.${index}.treatment`}
+                      control={control}
+                      render={({ field: treatmentField }) => (
+                        <TextField
+                          {...treatmentField}
+                          size="small"
+                          variant="outlined"
+                          placeholder="Treatment given"
+                          multiline
+                          rows={1}
+                          sx={{ minWidth: 120, fontSize: '0.75rem' }}
+                        />
+                      )}
+                    />
+                  </TableCell>
+
+                  {/* Actions */}
+                  <TableCell 
+                    sx={{ 
+                      '@media print': { 
+                        display: 'none' 
+                      } 
+                    }}
+                  >
+                    <IconButton
+                      size="small"
+                      onClick={() => removeVitalSigns(index)}
+                      color="error"
+                      disabled={fields.length === 1}
+                    >
+                      <DeleteIcon fontSize="small" />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
+
+      {/* Summary Statistics */}
+      {fields.length > 0 && (
+        <Box sx={{ mt: 2, p: 2, backgroundColor: theme.palette.grey[50], borderRadius: 1 }}>
+          <Typography variant="subtitle2" gutterBottom>
+            Summary ({fields.length} entries recorded)
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Most recent entry: {fields[fields.length - 1]?.time || 'N/A'}
+          </Typography>
+        </Box>
+      )}
+    </Paper>
+  );
+}

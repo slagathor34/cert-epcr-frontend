@@ -1,0 +1,255 @@
+import React from 'react';
+import {
+  Paper,
+  Typography,
+  Grid,
+  Button,
+  IconButton,
+  Divider,
+  Card,
+  CardContent,
+  Box,
+} from '@mui/material';
+import {
+  Add as AddIcon,
+  Delete as DeleteIcon,
+} from '@mui/icons-material';
+import { Control, useWatch } from 'react-hook-form';
+import { EPCRData } from '../../types/epcr';
+import { FormField } from '../ui/FormField';
+
+interface VitalSignsFormProps {
+  control: Control<EPCRData>;
+  onAddVitalSigns: () => void;
+  onRemoveVitalSigns: (index: number) => void;
+}
+
+export const VitalSignsForm: React.FC<VitalSignsFormProps> = ({
+  control,
+  onAddVitalSigns,
+  onRemoveVitalSigns,
+}) => {
+  const vitalSigns = useWatch({
+    control,
+    name: 'vitalSigns',
+    defaultValue: [],
+  });
+
+  const calculateGCSTotal = (eye: number, verbal: number, motor: number): number => {
+    return (eye || 0) + (verbal || 0) + (motor || 0);
+  };
+
+  return (
+    <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+        <Typography variant="h6" sx={{ color: 'primary.main', fontWeight: 'bold' }}>
+          Vital Signs
+        </Typography>
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          onClick={onAddVitalSigns}
+          size="small"
+        >
+          Add Vital Signs
+        </Button>
+      </Box>
+      <Divider sx={{ mb: 3 }} />
+      
+      {vitalSigns.length === 0 ? (
+        <Box textAlign="center" py={4}>
+          <Typography color="text.secondary" variant="body1">
+            No vital signs recorded yet. Click "Add Vital Signs" to begin.
+          </Typography>
+        </Box>
+      ) : (
+        <Grid container spacing={3}>
+          {vitalSigns.map((_, index) => (
+            <Grid item xs={12} key={index}>
+              <Card variant="outlined" sx={{ position: 'relative' }}>
+                <CardContent>
+                  <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                    <Typography variant="subtitle1" fontWeight="medium">
+                      Vital Signs Set #{index + 1}
+                    </Typography>
+                    {vitalSigns.length > 1 && (
+                      <IconButton
+                        color="error"
+                        size="small"
+                        onClick={() => onRemoveVitalSigns(index)}
+                        aria-label={`Remove vital signs set ${index + 1}`}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    )}
+                  </Box>
+                  
+                  <Grid container spacing={2}>
+                    {/* Time */}
+                    <Grid item xs={12} sm={6} md={4}>
+                      <FormField
+                        name={`vitalSigns.${index}.time`}
+                        control={control}
+                        label="Time Taken"
+                        type="datetime"
+                        required
+                        maxDate={new Date()}
+                      />
+                    </Grid>
+                    
+                    {/* Blood Pressure */}
+                    <Grid item xs={12} sm={6} md={4}>
+                      <FormField
+                        name={`vitalSigns.${index}.systolicBP`}
+                        control={control}
+                        label="Systolic BP (mmHg)"
+                        type="number"
+                        helperText="Upper blood pressure reading"
+                      />
+                    </Grid>
+                    
+                    <Grid item xs={12} sm={6} md={4}>
+                      <FormField
+                        name={`vitalSigns.${index}.diastolicBP`}
+                        control={control}
+                        label="Diastolic BP (mmHg)"
+                        type="number"
+                        helperText="Lower blood pressure reading"
+                      />
+                    </Grid>
+                    
+                    {/* Heart Rate and Respiratory Rate */}
+                    <Grid item xs={12} sm={6} md={4}>
+                      <FormField
+                        name={`vitalSigns.${index}.heartRate`}
+                        control={control}
+                        label="Heart Rate (bpm)"
+                        type="number"
+                        helperText="Beats per minute"
+                      />
+                    </Grid>
+                    
+                    <Grid item xs={12} sm={6} md={4}>
+                      <FormField
+                        name={`vitalSigns.${index}.respiratoryRate`}
+                        control={control}
+                        label="Respiratory Rate"
+                        type="number"
+                        helperText="Breaths per minute"
+                      />
+                    </Grid>
+                    
+                    {/* Temperature */}
+                    <Grid item xs={12} sm={6} md={4}>
+                      <FormField
+                        name={`vitalSigns.${index}.temperature`}
+                        control={control}
+                        label="Temperature (°F)"
+                        type="number"
+                        helperText="Body temperature in Fahrenheit"
+                      />
+                    </Grid>
+                    
+                    {/* Oxygen Saturation */}
+                    <Grid item xs={12} sm={6} md={4}>
+                      <FormField
+                        name={`vitalSigns.${index}.oxygenSaturation`}
+                        control={control}
+                        label="Oxygen Saturation (%)"
+                        type="number"
+                        helperText="SpO2 percentage"
+                      />
+                    </Grid>
+                    
+                    {/* Blood Glucose */}
+                    <Grid item xs={12} sm={6} md={4}>
+                      <FormField
+                        name={`vitalSigns.${index}.bloodGlucose`}
+                        control={control}
+                        label="Blood Glucose (mg/dL)"
+                        type="number"
+                        helperText="Blood sugar level"
+                      />
+                    </Grid>
+                    
+                    {/* Pain Scale */}
+                    <Grid item xs={12} sm={6} md={4}>
+                      <FormField
+                        name={`vitalSigns.${index}.painScale`}
+                        control={control}
+                        label="Pain Scale (0-10)"
+                        type="number"
+                        helperText="0 = No pain, 10 = Severe pain"
+                      />
+                    </Grid>
+                    
+                    {/* Glasgow Coma Scale */}
+                    <Grid item xs={12}>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 'medium', mb: 1 }}>
+                        Glasgow Coma Scale (Optional)
+                      </Typography>
+                    </Grid>
+                    
+                    <Grid item xs={12} sm={6} md={3}>
+                      <FormField
+                        name={`vitalSigns.${index}.glasgowComaScale.eye`}
+                        control={control}
+                        label="Eye Opening (1-4)"
+                        type="number"
+                        helperText="1=None, 2=Pain, 3=Verbal, 4=Spontaneous"
+                      />
+                    </Grid>
+                    
+                    <Grid item xs={12} sm={6} md={3}>
+                      <FormField
+                        name={`vitalSigns.${index}.glasgowComaScale.verbal`}
+                        control={control}
+                        label="Verbal Response (1-5)"
+                        type="number"
+                        helperText="1=None, 2=Sounds, 3=Words, 4=Confused, 5=Oriented"
+                      />
+                    </Grid>
+                    
+                    <Grid item xs={12} sm={6} md={3}>
+                      <FormField
+                        name={`vitalSigns.${index}.glasgowComaScale.motor`}
+                        control={control}
+                        label="Motor Response (1-6)"
+                        type="number"
+                        helperText="1=None, 2=Extension, 3=Flexion, 4=Withdrawal, 5=Localizes, 6=Obeys"
+                      />
+                    </Grid>
+                    
+                    <Grid item xs={12} sm={6} md={3}>
+                      <FormField
+                        name={`vitalSigns.${index}.glasgowComaScale.total`}
+                        control={control}
+                        label="GCS Total (3-15)"
+                        type="number"
+                        helperText="Sum of Eye + Verbal + Motor"
+                        disabled
+                      />
+                    </Grid>
+                  </Grid>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      )}
+      
+      {vitalSigns.length > 0 && (
+        <Box mt={2} textAlign="center">
+          <Button
+            variant="outlined"
+            startIcon={<AddIcon />}
+            onClick={onAddVitalSigns}
+            size="small"
+          >
+            Add Another Set of Vital Signs
+          </Button>
+        </Box>
+      )}
+    </Paper>
+  );
+};
