@@ -51,247 +51,6 @@ import { EPCRData } from '../types/epcr';
 import { exportToPDF, exportSingleRecordToCSV, exportSingleRecordToJSON, exportPatientSummary, exportToCSV } from '../utils/exportUtils';
 import { recordService } from '../services/recordService';
 
-// This mock data is now handled by the record service
-// Keeping this here temporarily for reference
-const legacyMockRecords: EPCRData[] = [
-  {
-    id: '001',
-    reportNumber: 'SFD-2024-001',
-    createdAt: '2024-01-15T09:30:00Z',
-    updatedAt: '2024-01-15T10:45:00Z',
-    status: 'completed',
-    patientDemographics: {
-      lastName: 'Johnson',
-      firstName: 'Michael',
-      dateOfBirth: '1985-06-15',
-      age: 38,
-      gender: 'M',
-      address: '123 Main St',
-      city: 'Springfield',
-      state: 'IL',
-      zip: '62701',
-      race: 'White',
-    },
-    incidentInformation: {
-      date: '2024-01-15',
-      time: '09:15',
-      patientNumber: 1,
-      totalPatients: 1,
-      respondingUnits: ['Unit 12'],
-      incidentLocation: '123 Main St',
-      city: 'Springfield',
-      state: 'IL',
-      zip: '62701'
-    },
-    crewPPE: {
-      crewMemberA: { eyeProtection: true, gloves: true, gown: false, n95Mask: true },
-      crewMemberB: { eyeProtection: false, gloves: false, gown: false, n95Mask: false },
-      crewMemberC: { eyeProtection: false, gloves: false, gown: false, n95Mask: false },
-      crewMemberD: { eyeProtection: false, gloves: false, gown: false, n95Mask: false },
-      crewMemberE: { eyeProtection: false, gloves: false, gown: false, n95Mask: false }
-    },
-    medicalHistory: {
-      allergies: 'NKDA',
-      medications: 'Lisinopril 10mg',
-      medicalHistory: 'Hypertension',
-      chiefComplaint: 'Chest pain'
-    },
-    glasgowComaScale: {
-      eyeOpening: 4,
-      verbalResponse: 5,
-      motorResponse: 6,
-      total: 15,
-    },
-    physicalAssessment: {
-      pupils: { left: 'Normal', right: 'Normal' },
-      lungSounds: { left: 'Clear', right: 'Clear' }
-    },
-    bodyDiagramInjuries: [],
-    vitalSigns: [],
-    treatmentProvided: {
-      airwayManagement: [],
-      breathing: [],
-      circulation: [],
-      medications: [],
-      procedures: [],
-      immobilization: [],
-      other: []
-    },
-    transportInformation: {
-      transportingAgency: 'Sacramento Fire Department',
-      vehicleNumber: 'A-12',
-      destination: 'Springfield General Hospital',
-      destinationType: 'hospital',
-      mileage: { begin: 45231, end: 45245, total: 14 },
-      patientRefusal: { refused: false }
-    },
-    notesPage: {
-      narrative: 'Patient complaining of chest pain...',
-      additionalNotes: ''
-    },
-    crewMembers: [],
-    signatures: {
-      primaryCareProvider: { name: 'John Doe, EMT' },
-      receivingFacility: { name: 'Springfield General' }
-    }
-  },
-  {
-    id: '002',
-    reportNumber: 'SFD-2024-002',
-    createdAt: '2024-01-15T14:20:00Z',
-    updatedAt: '2024-01-15T15:30:00Z',
-    status: 'completed',
-    patientDemographics: {
-      lastName: 'Davis',
-      firstName: 'Sarah',
-      dateOfBirth: '1992-03-22',
-      age: 31,
-      gender: 'F',
-      address: '456 Oak Ave',
-      city: 'Springfield',
-      state: 'IL',
-      zip: '62702',
-      race: 'Hispanic',
-    },
-    incidentInformation: {
-      date: '2024-01-15',
-      time: '14:05',
-      patientNumber: 1,
-      totalPatients: 1,
-      respondingUnits: ['Unit 8'],
-      incidentLocation: '456 Oak Ave',
-      city: 'Springfield',
-      state: 'IL',
-      zip: '62702'
-    },
-    crewPPE: {
-      crewMemberA: { eyeProtection: true, gloves: true, gown: true, n95Mask: true },
-      crewMemberB: { eyeProtection: false, gloves: false, gown: false, n95Mask: false },
-      crewMemberC: { eyeProtection: false, gloves: false, gown: false, n95Mask: false },
-      crewMemberD: { eyeProtection: false, gloves: false, gown: false, n95Mask: false },
-      crewMemberE: { eyeProtection: false, gloves: false, gown: false, n95Mask: false }
-    },
-    medicalHistory: {
-      allergies: 'Penicillin',
-      medications: 'Birth control pills',
-      medicalHistory: 'None',
-      chiefComplaint: 'Motor vehicle accident'
-    },
-    glasgowComaScale: {
-      eyeOpening: 3,
-      verbalResponse: 4,
-      motorResponse: 5,
-      total: 12,
-    },
-    physicalAssessment: {
-      pupils: { left: 'Normal', right: 'Normal' },
-      lungSounds: { left: 'Clear', right: 'Clear' }
-    },
-    bodyDiagramInjuries: [],
-    vitalSigns: [],
-    treatmentProvided: {
-      airwayManagement: [],
-      breathing: [],
-      circulation: [],
-      medications: [],
-      procedures: [],
-      immobilization: [],
-      other: []
-    },
-    transportInformation: {
-      transportingAgency: 'Sacramento Fire Department',
-      vehicleNumber: 'A-8',
-      destination: 'Memorial Hospital',
-      destinationType: 'hospital',
-      mileage: { begin: 42156, end: 42170, total: 14 },
-      patientRefusal: { refused: false }
-    },
-    notesPage: {
-      narrative: 'Patient involved in motor vehicle accident...',
-      additionalNotes: ''
-    },
-    crewMembers: [],
-    signatures: {
-      primaryCareProvider: { name: 'Jane Smith, Paramedic' },
-      receivingFacility: { name: 'Memorial Hospital' }
-    }
-  },
-  {
-    id: '003',
-    reportNumber: 'SFD-2024-003',
-    createdAt: '2024-01-16T08:45:00Z',
-    updatedAt: '2024-01-16T08:45:00Z',
-    status: 'draft',
-    patientDemographics: {
-      lastName: 'Wilson',
-      firstName: 'Robert',
-      dateOfBirth: '1978-11-08',
-      age: 45,
-      gender: 'M',
-      address: '789 Pine St',
-      city: 'Springfield',
-      state: 'IL',
-      zip: '62703',
-      race: 'Black',
-    },
-    incidentInformation: {
-      date: '2024-01-16',
-      time: '08:30',
-      patientNumber: 1,
-      totalPatients: 1,
-      respondingUnits: ['Unit 15'],
-      incidentLocation: '789 Pine St',
-      city: 'Springfield',
-      state: 'IL',
-      zip: '62703'
-    },
-    crewPPE: {
-      crewMemberA: { eyeProtection: false, gloves: true, gown: false, n95Mask: true },
-      crewMemberB: { eyeProtection: false, gloves: false, gown: false, n95Mask: false },
-      crewMemberC: { eyeProtection: false, gloves: false, gown: false, n95Mask: false },
-      crewMemberD: { eyeProtection: false, gloves: false, gown: false, n95Mask: false },
-      crewMemberE: { eyeProtection: false, gloves: false, gown: false, n95Mask: false }
-    },
-    medicalHistory: {
-      allergies: 'Unknown',
-      medications: 'Unknown',
-      medicalHistory: 'Unknown',
-      chiefComplaint: 'Difficulty breathing'
-    },
-    physicalAssessment: {
-      pupils: { left: '', right: '' },
-      lungSounds: { left: '', right: '' }
-    },
-    bodyDiagramInjuries: [],
-    vitalSigns: [],
-    treatmentProvided: {
-      airwayManagement: [],
-      breathing: [],
-      circulation: [],
-      medications: [],
-      procedures: [],
-      immobilization: [],
-      other: []
-    },
-    transportInformation: {
-      transportingAgency: '',
-      vehicleNumber: '',
-      destination: '',
-      destinationType: 'hospital',
-      mileage: { begin: 0, end: 0, total: 0 },
-      patientRefusal: { refused: false }
-    },
-    notesPage: {
-      narrative: '',
-      additionalNotes: ''
-    },
-    crewMembers: [],
-    signatures: {
-      primaryCareProvider: { name: '' },
-      receivingFacility: { name: '' }
-    }
-  },
-];
 
 export const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -526,34 +285,40 @@ export const Dashboard: React.FC = () => {
         color: 'white',
         boxShadow: '0 10px 25px -5px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.05)'
       }}>
-        <Typography variant="h3" component="h1" gutterBottom sx={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          gap: 2,
-          color: 'white',
-          fontWeight: 700
-        }}>
-          <img 
-            src="/sfd-logo.png" 
-            alt="Sacramento Fire CERT Logo"
-            style={{ 
-              width: '60px', 
-              height: '60px',
-              borderRadius: '12px',
-              backgroundColor: 'rgba(255,255,255,0.95)',
-              padding: '8px',
-              boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
-            }}
-          />
-          Patient Care Records Dashboard
-        </Typography>
-        <Typography variant="h6" sx={{ color: 'rgba(255,255,255,0.9)', fontWeight: 400 }}>
-          Sacramento Fire CERT - Sacramento Fire Department
-        </Typography>
-        <Typography variant="body1" sx={{ color: 'rgba(255,255,255,0.8)', mt: 1 }}>
-          Manage and review electronic patient care reports for emergency response incidents
-        </Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+          <Box>
+            <Typography variant="h3" component="h1" gutterBottom sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: 2,
+              color: 'white',
+              fontWeight: 700,
+              mb: 1
+            }}>
+              <img 
+                src="/sfd-logo.png" 
+                alt="Sacramento Fire CERT Logo"
+                style={{ 
+                  width: '60px', 
+                  height: '60px',
+                  borderRadius: '12px',
+                  backgroundColor: 'rgba(255,255,255,0.95)',
+                  padding: '8px',
+                  boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+                }}
+              />
+              Patient Care Records Dashboard
+            </Typography>
+            <Typography variant="h6" sx={{ color: 'rgba(255,255,255,0.9)', fontWeight: 400 }}>
+              Sacramento Fire CERT - Sacramento Fire Department
+            </Typography>
+            <Typography variant="body1" sx={{ color: 'rgba(255,255,255,0.8)', mt: 1 }}>
+              Manage and review electronic patient care reports for emergency response incidents
+            </Typography>
+          </Box>
+        </Box>
       </Box>
+
 
       {/* Stats Cards */}
       <Box sx={{ display: 'flex', gap: 3, mb: 4, flexWrap: 'wrap' }}>

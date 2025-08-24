@@ -8,6 +8,9 @@ import { Dashboard } from './pages/Dashboard';
 import { EPCRFormPagePDF } from './pages/EPCRFormPagePDF';
 import { EPCRFormPageSimple } from './pages/EPCRFormPageSimple';
 import { UserManagement } from './pages/UserManagement';
+import MemberManagement from './pages/MemberManagement';
+import MemberProfile from './pages/MemberProfile';
+import MemberForm from './components/members/MemberForm';
 import { initializeMockData } from './services/recordService';
 
 function App() {
@@ -82,6 +85,39 @@ function App() {
             <ProtectedRoute requiredPermission="manage_users">
               <Layout>
                 <UserManagement />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          
+          {/* Member Management Routes */}
+          <Route path="/members" element={
+            <ProtectedRoute>
+              <Layout>
+                <MemberManagement />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/members/new" element={
+            <ProtectedRoute requiredPermission="manage_users">
+              <Layout>
+                <MemberForm />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/members/:id" element={
+            <ProtectedRoute>
+              <Layout>
+                <MemberProfile />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/members/:id/edit" element={
+            <ProtectedRoute requiredPermission="manage_users">
+              <Layout>
+                <MemberForm />
               </Layout>
             </ProtectedRoute>
           } />

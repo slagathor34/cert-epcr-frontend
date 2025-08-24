@@ -26,6 +26,7 @@ import {
   Settings as SettingsIcon,
   AdminPanelSettings as AdminIcon,
   Logout as LogoutIcon,
+  Group as GroupIcon,
 } from '@mui/icons-material';
 import { ChatBot } from '../ui/ChatBot';
 import { useAuth } from '../../contexts/AuthContext';
@@ -332,6 +333,13 @@ const UserMenu: React.FC = () => {
           <ListItemText>Profile & Settings</ListItemText>
         </MenuItem>
 
+        <MenuItem onClick={() => handleNavigation('/members')}>
+          <ListItemIcon>
+            <GroupIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>CERT Members</ListItemText>
+        </MenuItem>
+
         {hasPermission('manage_users') && (
           <MenuItem onClick={() => handleNavigation('/admin/users')}>
             <ListItemIcon>
@@ -370,6 +378,25 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const getBreadcrumbs = () => {
     const path = location.pathname;
     if (path === '/dashboard') return [{ label: 'Dashboard', path: '/dashboard' }];
+    if (path === '/members') return [
+      { label: 'Dashboard', path: '/dashboard' },
+      { label: 'CERT Members', path: '/members' }
+    ];
+    if (path === '/members/new') return [
+      { label: 'Dashboard', path: '/dashboard' },
+      { label: 'CERT Members', path: '/members' },
+      { label: 'Add Member', path: '/members/new' }
+    ];
+    if (path.includes('/members/') && path.includes('/edit')) return [
+      { label: 'Dashboard', path: '/dashboard' },
+      { label: 'CERT Members', path: '/members' },
+      { label: 'Edit Member', path: path }
+    ];
+    if (path.includes('/members/')) return [
+      { label: 'Dashboard', path: '/dashboard' },
+      { label: 'CERT Members', path: '/members' },
+      { label: 'Member Profile', path: path }
+    ];
     if (path === '/epcr/new') return [
       { label: 'Dashboard', path: '/dashboard' },
       { label: 'New Report', path: '/epcr/new' }
@@ -442,6 +469,16 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                 }}
               >
                 Dashboard
+              </Button>
+              <Button
+                color="inherit"
+                startIcon={<GroupIcon />}
+                onClick={() => navigate('/members')}
+                sx={{ 
+                  backgroundColor: location.pathname.startsWith('/members') ? 'rgba(255,255,255,0.1)' : 'transparent' 
+                }}
+              >
+                Members
               </Button>
               <Button
                 color="inherit"
