@@ -326,8 +326,6 @@ export const MedicalPage: React.FC = () => {
           p: 3, 
           flex: 1, 
           minWidth: 220,
-          background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
-          border: '1px solid #e5e7eb',
           '&:hover': {
             transform: 'translateY(-2px)',
             boxShadow: '0 10px 25px -5px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.05)'
@@ -344,7 +342,7 @@ export const MedicalPage: React.FC = () => {
               <ReportIcon sx={{ fontSize: '1.5rem' }} />
             </Box>
             <Box>
-              <Typography variant="h4" sx={{ fontWeight: 700, color: '#1e3a8a' }}>
+              <Typography variant="h4" sx={{ fontWeight: 700, color: 'primary.main' }}>
                 {records.length}
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
@@ -358,8 +356,6 @@ export const MedicalPage: React.FC = () => {
           p: 3, 
           flex: 1, 
           minWidth: 220,
-          background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
-          border: '1px solid #e5e7eb',
           '&:hover': {
             transform: 'translateY(-2px)',
             boxShadow: '0 10px 25px -5px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.05)'
@@ -376,7 +372,7 @@ export const MedicalPage: React.FC = () => {
               <PersonIcon sx={{ fontSize: '1.5rem' }} />
             </Box>
             <Box>
-              <Typography variant="h4" sx={{ fontWeight: 700, color: '#1e3a8a' }}>
+              <Typography variant="h4" sx={{ fontWeight: 700, color: 'primary.main' }}>
                 {records.filter(r => r.status === 'completed').length}
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
@@ -390,8 +386,6 @@ export const MedicalPage: React.FC = () => {
           p: 3, 
           flex: 1, 
           minWidth: 220,
-          background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
-          border: '1px solid #e5e7eb',
           '&:hover': {
             transform: 'translateY(-2px)',
             boxShadow: '0 10px 25px -5px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.05)'
@@ -408,7 +402,7 @@ export const MedicalPage: React.FC = () => {
               <CalendarIcon sx={{ fontSize: '1.5rem' }} />
             </Box>
             <Box>
-              <Typography variant="h4" sx={{ fontWeight: 700, color: '#1e3a8a' }}>
+              <Typography variant="h4" sx={{ fontWeight: 700, color: 'primary.main' }}>
                 {records.filter(r => r.status === 'draft').length}
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
@@ -421,8 +415,6 @@ export const MedicalPage: React.FC = () => {
 
       {/* Main Table */}
       <Paper sx={{ 
-        background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
-        border: '1px solid #e5e7eb',
         boxShadow: '0 10px 25px -5px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.05)'
       }}>
         {/* Toolbar */}

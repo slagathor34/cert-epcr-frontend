@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Container,
@@ -29,6 +29,11 @@ import {
   Button,
   Badge,
   Divider,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Fade,
 } from '@mui/material';
 import {
   Security as OperationsIcon,
@@ -56,7 +61,17 @@ import {
   Map as MapIcon,
   Speed as SpeedIcon,
   AccessTime as TimeIcon,
+  Psychology as AIIcon,
+  Fullscreen as FullscreenIcon,
+  FullscreenExit as FullscreenExitIcon,
+  Tune as TuneIcon,
 } from '@mui/icons-material';
+
+// Import our new tactical components
+import TacticalMap from '../components/operations/TacticalMap';
+import MeshtasticChat from '../components/operations/MeshtasticChat';
+import AIAnalysisPanel from '../components/operations/AIAnalysisPanel';
+import SDRInterface from '../components/operations/SDRInterface';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -72,17 +87,83 @@ const TabPanel: React.FC<TabPanelProps> = ({ children, value, index }) => (
 
 const OperationsPage: React.FC = () => {
   const [tabValue, setTabValue] = useState(0);
+  const [fullscreenDialog, setFullscreenDialog] = useState<string | null>(null);
+  const [alertsCount, setAlertsCount] = useState(3);
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
   };
 
-  // Mock data for operations
+  const handleFullscreen = (component: string) => {
+    setFullscreenDialog(component);
+  };
+
+  const handleCloseFullscreen = () => {
+    setFullscreenDialog(null);
+  };
+
+  // Enhanced incident data with more tactical details
   const activeIncidents = [
-    { id: 'INC-2024-001', type: 'Structure Fire', location: '1234 Oak Street', status: 'active', priority: 'high', units: 8, timeElapsed: '00:45:32' },
-    { id: 'INC-2024-002', type: 'Medical Emergency', location: '5678 Pine Ave', status: 'active', priority: 'critical', units: 4, timeElapsed: '00:23:15' },
-    { id: 'INC-2024-003', type: 'Vehicle Accident', location: 'Highway 50 & J St', status: 'responding', priority: 'medium', units: 6, timeElapsed: '00:12:08' },
-    { id: 'INC-2024-004', type: 'Hazmat Spill', location: 'Industrial District', status: 'contained', priority: 'high', units: 12, timeElapsed: '02:15:44' },
+    { 
+      id: 'INC-2024-001', 
+      type: 'Structure Fire', 
+      location: '1234 Oak Street', 
+      coordinates: { lat: 38.5815, lng: -121.4945 },
+      status: 'active', 
+      priority: 'critical', 
+      units: 8, 
+      timeElapsed: '00:45:32',
+      commandPost: 'CP-01',
+      casualties: 2,
+      evacuated: 15,
+      threatLevel: 'High',
+      weatherImpact: 'Moderate wind affecting smoke direction'
+    },
+    { 
+      id: 'INC-2024-002', 
+      type: 'Medical Emergency', 
+      location: '5678 Pine Ave', 
+      coordinates: { lat: 38.5822, lng: -121.4952 },
+      status: 'active', 
+      priority: 'critical', 
+      units: 4, 
+      timeElapsed: '00:23:15',
+      commandPost: 'CP-02',
+      casualties: 1,
+      evacuated: 0,
+      threatLevel: 'Low',
+      weatherImpact: 'None'
+    },
+    { 
+      id: 'INC-2024-003', 
+      type: 'Search & Rescue', 
+      location: 'Warehouse District Grid 4', 
+      coordinates: { lat: 38.5808, lng: -121.4938 },
+      status: 'responding', 
+      priority: 'high', 
+      units: 12, 
+      timeElapsed: '01:12:08',
+      commandPost: 'CP-03',
+      casualties: 0,
+      evacuated: 3,
+      threatLevel: 'Medium',
+      weatherImpact: 'Reduced visibility due to debris'
+    },
+    { 
+      id: 'INC-2024-004', 
+      type: 'Hazmat Containment', 
+      location: 'Industrial District Zone B', 
+      coordinates: { lat: 38.5835, lng: -121.4965 },
+      status: 'contained', 
+      priority: 'high', 
+      units: 16, 
+      timeElapsed: '02:15:44',
+      commandPost: 'CP-04',
+      casualties: 0,
+      evacuated: 47,
+      threatLevel: 'High',
+      weatherImpact: 'Wind speed 8mph NW - containment favorable'
+    },
   ];
 
   const deployedUnits = [
@@ -155,30 +236,65 @@ const OperationsPage: React.FC = () => {
     return <FlashIcon />;
   };
 
+  // Auto-refresh for real-time updates
+  useEffect(() => {
+    const interval = setInterval(() => {
+      // Simulate alert count changes
+      setAlertsCount(prev => Math.max(1, prev + (Math.random() > 0.7 ? 1 : -1)));
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
-      {/* Header */}
+      {/* Tactical Operations Header */}
       <Box sx={{ mb: 4 }}>
-        <Typography variant="h3" component="h1" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <OperationsIcon sx={{ fontSize: 'inherit', color: 'primary.main' }} />
-          Operations Center
-        </Typography>
-        <Typography variant="h6" color="text.secondary" sx={{ mb: 3 }}>
-          Real-time incident management, unit deployment, and operational coordination for emergency response
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <OperationsIcon sx={{ fontSize: 48, color: 'primary.main' }} />
+            <Box>
+              <Typography variant="h3" component="h1" gutterBottom>
+                Tactical Operations Center
+              </Typography>
+              <Typography variant="h6" color="text.secondary">
+                Real-time incident command, tactical communications, and AI-powered situational analysis
+              </Typography>
+            </Box>
+          </Box>
+          <Card sx={{ minWidth: 180 }}>
+            <CardContent sx={{ pb: '16px !important' }}>
+              <Typography variant="h6" color="error.main" gutterBottom>
+                CONDITION: ALPHA
+              </Typography>
+              <Typography variant="caption" color="text.secondary" display="block">
+                4 Active Incidents
+              </Typography>
+              <Typography variant="caption" color="text.secondary" display="block">
+                Last Update: {new Date().toLocaleTimeString()}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Box>
 
-        {/* Operational Status Alerts */}
+        {/* Critical Status Alerts */}
         <Grid container spacing={2} sx={{ mb: 3 }}>
-          <Grid item xs={12} md={8}>
-            <Alert severity="info" sx={{ mb: 1 }}>
-              <AlertTitle>Current Operational Status: ELEVATED</AlertTitle>
-              4 active incidents, 2 units responding, average response time 5.2 minutes
+          <Grid item xs={12} md={4}>
+            <Alert severity="error" sx={{ animation: 'pulse 2s infinite' }}>
+              <AlertTitle>🚨 PRIORITY ALERT</AlertTitle>
+              Environmental hazard detected - CO levels elevated in Sector 3
             </Alert>
           </Grid>
           <Grid item xs={12} md={4}>
             <Alert severity="warning">
-              <AlertTitle>Unit Availability Alert</AlertTitle>
-              78% availability - below target threshold
+              <AlertTitle>⚠️ RESOURCE STATUS</AlertTitle>
+              CERT-05 emergency status - battery critical, immediate support dispatched
+            </Alert>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Alert severity="info">
+              <AlertTitle>📡 COMMUNICATIONS</AlertTitle>
+              Meshtastic network: 8 nodes online, signal strength good
             </Alert>
           </Grid>
         </Grid>
@@ -219,15 +335,71 @@ const OperationsPage: React.FC = () => {
       <Card>
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
           <Tabs value={tabValue} onChange={handleTabChange} variant="scrollable" scrollButtons="auto">
-            <Tab label="Active Incidents" icon={<EmergencyIcon />} />
-            <Tab label="Unit Status" icon={<TeamIcon />} />
+            <Tab label="Tactical View" icon={<MapIcon />} />
             <Tab label="Communications" icon={<RadioIcon />} />
-            <Tab label="Command Center" icon={<MapIcon />} />
+            <Tab label="AI Analysis" icon={<AIIcon />} />
+            <Tab label="Active Incidents" icon={<EmergencyIcon />} />
           </Tabs>
         </Box>
 
-        {/* Active Incidents Tab */}
+        {/* Tactical View Tab */}
         <TabPanel value={tabValue} index={0}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+            <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <MapIcon color="primary" />
+              Tactical Map & Team Positions
+            </Typography>
+            <IconButton onClick={() => handleFullscreen('tactical')}>
+              <FullscreenIcon />
+            </IconButton>
+          </Box>
+          <TacticalMap />
+        </TabPanel>
+
+        {/* Communications Tab */}
+        <TabPanel value={tabValue} index={1}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+            <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <RadioIcon color="info" />
+              Meshtastic Communications Network
+            </Typography>
+            <IconButton onClick={() => handleFullscreen('comms')}>
+              <FullscreenIcon />
+            </IconButton>
+          </Box>
+          <MeshtasticChat />
+          
+          {/* SDR Interface Section */}
+          <Box sx={{ mt: 4 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+              <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <TuneIcon color="success" />
+                Software Defined Radio Control
+              </Typography>
+              <IconButton onClick={() => handleFullscreen('sdr')}>
+                <FullscreenIcon />
+              </IconButton>
+            </Box>
+            <SDRInterface />
+          </Box>
+        </TabPanel>
+
+        {/* AI Analysis Tab */}
+        <TabPanel value={tabValue} index={2}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+            <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <AIIcon color="secondary" />
+              AI Situational Analysis
+            </Typography>
+            <IconButton onClick={() => handleFullscreen('ai')}>
+              <FullscreenIcon />
+            </IconButton>
+          </Box>
+          <AIAnalysisPanel />
+        </TabPanel>
+
+        {/* Active Incidents Tab */}
+        <TabPanel value={tabValue} index={3}>
           <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <EmergencyIcon color="error" />
             Active Emergency Incidents
@@ -315,8 +487,8 @@ const OperationsPage: React.FC = () => {
           </TableContainer>
         </TabPanel>
 
-        {/* Unit Status Tab */}
-        <TabPanel value={tabValue} index={1}>
+        {/* Unit Status Tab (keeping for reference but moved to index 4) */}
+        <TabPanel value={tabValue} index={4}>
           <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <TeamIcon color="primary" />
             Deployed Units & Response Teams
@@ -392,9 +564,88 @@ const OperationsPage: React.FC = () => {
             </Table>
           </TableContainer>
         </TabPanel>
+      </Card>
 
-        {/* Communications Tab */}
-        <TabPanel value={tabValue} index={2}>
+      {/* Fullscreen Dialogs */}
+      <Dialog 
+        fullScreen 
+        open={fullscreenDialog === 'tactical'} 
+        onClose={handleCloseFullscreen}
+        TransitionComponent={Fade}
+      >
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Typography variant="h5" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <MapIcon /> Tactical Map - Full View
+          </Typography>
+          <IconButton onClick={handleCloseFullscreen}>
+            <FullscreenExitIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent sx={{ p: 0 }}>
+          <TacticalMap />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog 
+        fullScreen 
+        open={fullscreenDialog === 'comms'} 
+        onClose={handleCloseFullscreen}
+        TransitionComponent={Fade}
+      >
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Typography variant="h5" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <RadioIcon /> Meshtastic Communications - Full View
+          </Typography>
+          <IconButton onClick={handleCloseFullscreen}>
+            <FullscreenExitIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent sx={{ p: 0 }}>
+          <MeshtasticChat />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog 
+        fullScreen 
+        open={fullscreenDialog === 'ai'} 
+        onClose={handleCloseFullscreen}
+        TransitionComponent={Fade}
+      >
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Typography variant="h5" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <AIIcon /> AI Analysis - Full View
+          </Typography>
+          <IconButton onClick={handleCloseFullscreen}>
+            <FullscreenExitIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent sx={{ p: 0 }}>
+          <AIAnalysisPanel />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog 
+        fullScreen 
+        open={fullscreenDialog === 'sdr'} 
+        onClose={handleCloseFullscreen}
+        TransitionComponent={Fade}
+      >
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#1a1a1a', color: '#ffffff' }}>
+          <Typography variant="h5" sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#00ff41' }}>
+            <TuneIcon /> Software Defined Radio - Full View
+          </Typography>
+          <IconButton onClick={handleCloseFullscreen} sx={{ color: '#ffffff' }}>
+            <FullscreenExitIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent sx={{ p: 0, backgroundColor: '#1a1a1a' }}>
+          <SDRInterface />
+        </DialogContent>
+      </Dialog>
+
+      {/* Legacy Communications Tab (kept for reference) */}
+      <Card sx={{ display: 'none' }}>
+        <TabPanel value={tabValue} index={999}>
           <Grid container spacing={3}>
             <Grid item xs={12} md={8}>
               <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -494,8 +745,8 @@ const OperationsPage: React.FC = () => {
           </Grid>
         </TabPanel>
 
-        {/* Command Center Tab */}
-        <TabPanel value={tabValue} index={3}>
+        {/* Legacy Command Center Tab (kept for reference) */}
+        <TabPanel value={tabValue} index={998}>
           <Grid container spacing={3}>
             <Grid item xs={12} md={8}>
               <Card sx={{ height: 400 }}>

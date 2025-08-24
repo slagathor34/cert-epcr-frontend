@@ -17,7 +17,6 @@ import {
   Divider,
   Chip,
 } from '@mui/material';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   Dashboard as DashboardIcon, 
@@ -33,176 +32,10 @@ import {
   Security as OperationsIcon,
 } from '@mui/icons-material';
 import { ChatBot } from '../ui/ChatBot';
+import ThemeToggle from '../ui/ThemeToggle';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePermissions } from '../auth/ProtectedRoute';
 
-const theme = createTheme({
-  palette: {
-    primary: {
-      main: '#1e3a8a', // Navy blue - matches SFD Cert primary
-      light: '#3b82f6', // Sky blue
-      dark: '#1e40af',
-      contrastText: '#ffffff',
-    },
-    secondary: {
-      main: '#f59e0b', // Amber accent
-      light: '#fbbf24',
-      dark: '#d97706',
-      contrastText: '#000000',
-    },
-    background: {
-      default: '#f8fafc', // Very light gray
-      paper: '#ffffff',
-    },
-    text: {
-      primary: '#1f2937', // Dark gray
-      secondary: '#6b7280',
-    },
-    grey: {
-      50: '#f9fafb',
-      100: '#f3f4f6',
-      200: '#e5e7eb',
-      300: '#d1d5db',
-      400: '#9ca3af',
-      500: '#6b7280',
-      600: '#4b5563',
-      700: '#374151',
-      800: '#1f2937',
-      900: '#111827',
-    },
-  },
-  typography: {
-    fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
-    h1: {
-      fontSize: '2.5rem',
-      fontWeight: 700,
-      color: '#1e3a8a',
-      letterSpacing: '-0.025em',
-    },
-    h2: {
-      fontSize: '2rem',
-      fontWeight: 600,
-      color: '#1e3a8a',
-      letterSpacing: '-0.025em',
-    },
-    h3: {
-      fontSize: '1.75rem',
-      fontWeight: 600,
-      color: '#1e3a8a',
-    },
-    h4: {
-      fontSize: '1.5rem',
-      fontWeight: 600,
-      color: '#1e3a8a',
-    },
-    h5: {
-      fontSize: '1.25rem',
-      fontWeight: 600,
-      color: '#1e3a8a',
-    },
-    h6: {
-      fontSize: '1.125rem',
-      fontWeight: 600,
-      color: '#1e3a8a',
-    },
-    body1: {
-      fontSize: '1rem',
-      lineHeight: 1.6,
-      color: '#1f2937',
-    },
-    body2: {
-      fontSize: '0.875rem',
-      lineHeight: 1.5,
-      color: '#6b7280',
-    },
-    button: {
-      textTransform: 'none',
-      fontWeight: 600,
-    },
-  },
-  components: {
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          textTransform: 'none',
-          borderRadius: 8,
-          fontWeight: 600,
-          padding: '10px 20px',
-          boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
-          '&:hover': {
-            boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
-          },
-        },
-        contained: {
-          background: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)',
-          '&:hover': {
-            background: 'linear-gradient(135deg, #1e40af 0%, #2563eb 100%)',
-          },
-        },
-      },
-    },
-    MuiPaper: {
-      styleOverrides: {
-        root: {
-          borderRadius: 12,
-          boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
-        },
-        elevation1: {
-          boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
-        },
-        elevation2: {
-          boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
-        },
-      },
-    },
-    MuiAppBar: {
-      styleOverrides: {
-        root: {
-          background: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)',
-          boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
-        },
-      },
-    },
-    MuiChip: {
-      styleOverrides: {
-        root: {
-          fontWeight: 500,
-          fontSize: '0.75rem',
-        },
-        filled: {
-          boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
-        },
-      },
-    },
-    MuiCard: {
-      styleOverrides: {
-        root: {
-          borderRadius: 12,
-          boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
-          '&:hover': {
-            boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
-          },
-        },
-      },
-    },
-    MuiTableHead: {
-      styleOverrides: {
-        root: {
-          backgroundColor: '#f8fafc',
-        },
-      },
-    },
-    MuiTableRow: {
-      styleOverrides: {
-        root: {
-          '&:hover': {
-            backgroundColor: '#f8fafc',
-          },
-        },
-      },
-    },
-  },
-});
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -381,60 +214,58 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   const getBreadcrumbs = () => {
     const path = location.pathname;
-    if (path === '/dashboard') return [{ label: 'Command Dashboard', path: '/dashboard' }];
+    if (path === '/dashboard') return [{ label: 'Unified Command Center', path: '/dashboard' }];
     if (path === '/medical') return [
-      { label: 'Command Dashboard', path: '/dashboard' },
+      { label: 'Unified Command Center', path: '/dashboard' },
       { label: 'Medical', path: '/medical' }
     ];
-    if (path === '/operations') return [
-      { label: 'Command Dashboard', path: '/dashboard' },
-      { label: 'Operations', path: '/operations' }
-    ];
     if (path === '/logistics') return [
-      { label: 'Command Dashboard', path: '/dashboard' },
+      { label: 'Unified Command Center', path: '/dashboard' },
       { label: 'Logistics', path: '/logistics' }
     ];
     if (path === '/planning') return [
-      { label: 'Command Dashboard', path: '/dashboard' },
+      { label: 'Unified Command Center', path: '/dashboard' },
       { label: 'Planning', path: '/planning' }
     ];
     if (path === '/members') return [
-      { label: 'Command Dashboard', path: '/dashboard' },
+      { label: 'Unified Command Center', path: '/dashboard' },
       { label: 'CERT Members', path: '/members' }
     ];
     if (path === '/members/new') return [
-      { label: 'Command Dashboard', path: '/dashboard' },
+      { label: 'Unified Command Center', path: '/dashboard' },
       { label: 'CERT Members', path: '/members' },
       { label: 'Add Member', path: '/members/new' }
     ];
     if (path.includes('/members/') && path.includes('/edit')) return [
-      { label: 'Command Dashboard', path: '/dashboard' },
+      { label: 'Unified Command Center', path: '/dashboard' },
       { label: 'CERT Members', path: '/members' },
       { label: 'Edit Member', path: path }
     ];
     if (path.includes('/members/')) return [
-      { label: 'Command Dashboard', path: '/dashboard' },
+      { label: 'Unified Command Center', path: '/dashboard' },
       { label: 'CERT Members', path: '/members' },
       { label: 'Member Profile', path: path }
     ];
     if (path === '/epcr/new') return [
-      { label: 'Command Dashboard', path: '/dashboard' },
+      { label: 'Unified Command Center', path: '/dashboard' },
       { label: 'New Report', path: '/epcr/new' }
     ];
     if (path.includes('/epcr/') && path.includes('/edit')) return [
-      { label: 'Command Dashboard', path: '/dashboard' },
+      { label: 'Unified Command Center', path: '/dashboard' },
       { label: 'Edit Report', path: path }
     ];
     if (path.includes('/epcr/')) return [
-      { label: 'Command Dashboard', path: '/dashboard' },
+      { label: 'Unified Command Center', path: '/dashboard' },
       { label: 'View Report', path: path }
     ];
-    return [{ label: 'Command Dashboard', path: '/dashboard' }];
+    return [{ label: 'Unified Command Center', path: '/dashboard' }];
   };
 
   return (
-    <ThemeProvider theme={theme}>
+    <>
       <CssBaseline />
+      
+      
       <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
         <AppBar position="sticky" elevation={1}>
           <Toolbar>
@@ -479,7 +310,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               </Box>
             </Box>
             
-            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexGrow: 1, justifyContent: 'flex-end' }}>
               <Button
                 color="inherit"
                 startIcon={<DashboardIcon />}
@@ -548,6 +379,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               >
                 New Report
               </Button>
+              <ThemeToggle />
               <UserMenu />
             </Box>
           </Toolbar>
@@ -599,7 +431,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                   CERT Command Center
                 </Typography>
                 <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)' }}>
-                  Emergency Management System
+                  Incident Command and Control v14
                 </Typography>
               </Box>
               <Box sx={{ textAlign: 'right' }}>
@@ -617,6 +449,6 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         {/* Chat Bot */}
         <ChatBot />
       </Box>
-    </ThemeProvider>
+    </>
   );
 };
