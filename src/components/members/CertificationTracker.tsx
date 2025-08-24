@@ -360,7 +360,7 @@ const CertificationTracker: React.FC<CertificationTrackerProps> = ({
       {renderCertificationGroup(
         'FEMA CERT Volunteer Type 2',
         member.femaCertType2,
-        <SchoolIcon color="primary" />,
+        <SchoolIcon sx={{ color: '#1976d2' }} />,
         'type2'
       )}
 
@@ -368,7 +368,7 @@ const CertificationTracker: React.FC<CertificationTrackerProps> = ({
       {renderCertificationGroup(
         'FEMA CERT Volunteer Type 1 Plus',
         member.femaCertType1Plus,
-        <SecurityIcon color="info" />,
+        <SecurityIcon sx={{ color: '#d32f2f' }} />,
         'type1plus'
       )}
 
@@ -376,7 +376,7 @@ const CertificationTracker: React.FC<CertificationTrackerProps> = ({
       {renderCertificationGroup(
         'FEMA CERT Section Chief',
         member.femaSectionChief,
-        <TeamIcon color="warning" />,
+        <TeamIcon sx={{ color: '#f57c00' }} />,
         'sectionchief'
       )}
 
@@ -384,7 +384,7 @@ const CertificationTracker: React.FC<CertificationTrackerProps> = ({
       {renderNestedCertificationGroup(
         'FEMA CERT Team Leader',
         member.femaTeamLeader,
-        <TeamIcon color="secondary" />,
+        <TeamIcon sx={{ color: '#1976d2' }} />,
         'teamleader'
       )}
 
@@ -392,7 +392,7 @@ const CertificationTracker: React.FC<CertificationTrackerProps> = ({
       {renderCertificationGroup(
         'Emergency Medical Responder',
         member.emergencyMedicalResponder,
-        <MedicalIcon color="error" />,
+        <MedicalIcon sx={{ color: '#d32f2f' }} />,
         'emr'
       )}
 
@@ -400,7 +400,7 @@ const CertificationTracker: React.FC<CertificationTrackerProps> = ({
       {renderCertificationGroup(
         'Instructor Certifications',
         member.instructor,
-        <SchoolIcon color="success" />,
+        <SchoolIcon sx={{ color: '#f57c00' }} />,
         'instructor'
       )}
 

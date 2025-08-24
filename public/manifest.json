@@ -1,6 +1,6 @@
 {
-  "short_name": "SFD ePCR",
-  "name": "Sacramento CERT - Electronic Patient Care Records",
+  "short_name": "CERT Command",
+  "name": "CERT Command Center",
   "icons": [
     {
       "src": "sfd-logo.png",

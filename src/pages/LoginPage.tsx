@@ -181,13 +181,13 @@ export const LoginPage: React.FC = () => {
                     lineHeight: 1.2,
                     mb: 1
                   }}>
-                    Sacramento Fire CERT
+                    CERT Command Center
                   </Typography>
                   <Typography variant="h6" sx={{ 
                     color: 'rgba(255,255,255,0.9)',
                     fontWeight: 400
                   }}>
-                    Electronic Patient Care Records
+                    Emergency Management System
                   </Typography>
                 </Box>
               </Box>
@@ -198,8 +198,8 @@ export const LoginPage: React.FC = () => {
                 color: 'rgba(255,255,255,0.8)',
                 maxWidth: 400
               }}>
-                Secure, comprehensive patient documentation system for emergency medical responders. 
-                Access your patient care records, manage incidents, and maintain certification tracking.
+                Comprehensive emergency management platform for CERT teams. 
+                Coordinate operations, manage resources, track medical records, and maintain team readiness.
               </Typography>
               
               <Box sx={{ mt: 4 }}>
@@ -208,13 +208,13 @@ export const LoginPage: React.FC = () => {
                 </Typography>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                   <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)', display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <MedicalIcon fontSize="small" /> Comprehensive patient care documentation
+                    <MedicalIcon fontSize="small" /> Medical records and patient care
                   </Typography>
                   <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)', display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <BadgeIcon fontSize="small" /> Certification and training tracking
+                    <BadgeIcon fontSize="small" /> Operations and incident management
                   </Typography>
                   <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)', display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <PersonIcon fontSize="small" /> Multi-user team management
+                    <PersonIcon fontSize="small" /> Team coordination and logistics
                   </Typography>
                 </Box>
               </Box>
@@ -243,7 +243,7 @@ export const LoginPage: React.FC = () => {
                   Welcome Back
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  Sign in to access your patient care records
+                  Sign in to access the command center
                 </Typography>
               </Box>
 

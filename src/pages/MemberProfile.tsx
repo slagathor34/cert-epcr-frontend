@@ -168,18 +168,18 @@ const MemberProfile: React.FC = () => {
   };
 
   const getCertificationIcon = (isCompleted: boolean, expirationDate?: string) => {
-    if (!isCompleted) return <CancelIcon color="error" />;
+    if (!isCompleted) return <CancelIcon sx={{ color: '#d32f2f' }} />;
     
     if (expirationDate) {
       if (MemberService.isCertificationExpired(expirationDate)) {
-        return <WarningIcon color="error" />;
+        return <WarningIcon sx={{ color: '#d32f2f' }} />;
       }
       if (MemberService.isCertificationExpiringSoon(expirationDate)) {
-        return <WarningIcon color="warning" />;
+        return <WarningIcon sx={{ color: '#f57c00' }} />;
       }
     }
     
-    return <CheckIcon color="success" />;
+    return <CheckIcon sx={{ color: '#2e7d32' }} />;
   };
 
   const renderCertificationSection = (title: string, certifications: any, prefix: string = '') => (
@@ -342,7 +342,7 @@ const MemberProfile: React.FC = () => {
       <Card>
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
           <Tabs value={tabValue} onChange={handleTabChange}>
-            <Tab label="Certifications" icon={<SchoolIcon />} />
+            <Tab label="Certifications" icon={<SchoolIcon sx={{ color: '#2e7d32' }} />} />
             <Tab label="Events" icon={<EventIcon />} />
             <Tab label="Equipment" icon={<EquipmentIcon />} />
             <Tab label="Notes" icon={<NoteIcon />} />

@@ -27,6 +27,10 @@ import {
   AdminPanelSettings as AdminIcon,
   Logout as LogoutIcon,
   Group as GroupIcon,
+  Inventory as LogisticsIcon,
+  EventNote as PlanningIcon,
+  LocalHospital as MedicalIcon,
+  Security as OperationsIcon,
 } from '@mui/icons-material';
 import { ChatBot } from '../ui/ChatBot';
 import { useAuth } from '../../contexts/AuthContext';
@@ -377,39 +381,55 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   const getBreadcrumbs = () => {
     const path = location.pathname;
-    if (path === '/dashboard') return [{ label: 'Dashboard', path: '/dashboard' }];
+    if (path === '/dashboard') return [{ label: 'Command Dashboard', path: '/dashboard' }];
+    if (path === '/medical') return [
+      { label: 'Command Dashboard', path: '/dashboard' },
+      { label: 'Medical', path: '/medical' }
+    ];
+    if (path === '/operations') return [
+      { label: 'Command Dashboard', path: '/dashboard' },
+      { label: 'Operations', path: '/operations' }
+    ];
+    if (path === '/logistics') return [
+      { label: 'Command Dashboard', path: '/dashboard' },
+      { label: 'Logistics', path: '/logistics' }
+    ];
+    if (path === '/planning') return [
+      { label: 'Command Dashboard', path: '/dashboard' },
+      { label: 'Planning', path: '/planning' }
+    ];
     if (path === '/members') return [
-      { label: 'Dashboard', path: '/dashboard' },
+      { label: 'Command Dashboard', path: '/dashboard' },
       { label: 'CERT Members', path: '/members' }
     ];
     if (path === '/members/new') return [
-      { label: 'Dashboard', path: '/dashboard' },
+      { label: 'Command Dashboard', path: '/dashboard' },
       { label: 'CERT Members', path: '/members' },
       { label: 'Add Member', path: '/members/new' }
     ];
     if (path.includes('/members/') && path.includes('/edit')) return [
-      { label: 'Dashboard', path: '/dashboard' },
+      { label: 'Command Dashboard', path: '/dashboard' },
       { label: 'CERT Members', path: '/members' },
       { label: 'Edit Member', path: path }
     ];
     if (path.includes('/members/')) return [
-      { label: 'Dashboard', path: '/dashboard' },
+      { label: 'Command Dashboard', path: '/dashboard' },
       { label: 'CERT Members', path: '/members' },
       { label: 'Member Profile', path: path }
     ];
     if (path === '/epcr/new') return [
-      { label: 'Dashboard', path: '/dashboard' },
+      { label: 'Command Dashboard', path: '/dashboard' },
       { label: 'New Report', path: '/epcr/new' }
     ];
     if (path.includes('/epcr/') && path.includes('/edit')) return [
-      { label: 'Dashboard', path: '/dashboard' },
+      { label: 'Command Dashboard', path: '/dashboard' },
       { label: 'Edit Report', path: path }
     ];
     if (path.includes('/epcr/')) return [
-      { label: 'Dashboard', path: '/dashboard' },
+      { label: 'Command Dashboard', path: '/dashboard' },
       { label: 'View Report', path: path }
     ];
-    return [{ label: 'Dashboard', path: '/dashboard' }];
+    return [{ label: 'Command Dashboard', path: '/dashboard' }];
   };
 
   return (
@@ -453,7 +473,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                     fontSize: '0.75rem',
                     fontWeight: 500
                   }}>
-                    Electronic Patient Care Records
+                    Command Center
                   </Typography>
                 </Box>
               </Box>
@@ -468,7 +488,47 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                   backgroundColor: location.pathname === '/dashboard' ? 'rgba(255,255,255,0.1)' : 'transparent' 
                 }}
               >
-                Dashboard
+                Command
+              </Button>
+              <Button
+                color="inherit"
+                startIcon={<MedicalIcon />}
+                onClick={() => navigate('/medical')}
+                sx={{ 
+                  backgroundColor: location.pathname.startsWith('/medical') ? 'rgba(255,255,255,0.1)' : 'transparent' 
+                }}
+              >
+                Medical
+              </Button>
+              <Button
+                color="inherit"
+                startIcon={<OperationsIcon />}
+                onClick={() => navigate('/operations')}
+                sx={{ 
+                  backgroundColor: location.pathname.startsWith('/operations') ? 'rgba(255,255,255,0.1)' : 'transparent' 
+                }}
+              >
+                Operations
+              </Button>
+              <Button
+                color="inherit"
+                startIcon={<LogisticsIcon />}
+                onClick={() => navigate('/logistics')}
+                sx={{ 
+                  backgroundColor: location.pathname.startsWith('/logistics') ? 'rgba(255,255,255,0.1)' : 'transparent' 
+                }}
+              >
+                Logistics
+              </Button>
+              <Button
+                color="inherit"
+                startIcon={<PlanningIcon />}
+                onClick={() => navigate('/planning')}
+                sx={{ 
+                  backgroundColor: location.pathname.startsWith('/planning') ? 'rgba(255,255,255,0.1)' : 'transparent' 
+                }}
+              >
+                Planning
               </Button>
               <Button
                 color="inherit"
@@ -536,10 +596,10 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
               <Box>
                 <Typography variant="body1" sx={{ fontWeight: 600, mb: 0.5 }}>
-                  Sacramento Fire CERT
+                  CERT Command Center
                 </Typography>
                 <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)' }}>
-                  Electronic Patient Care Records System
+                  Emergency Management System
                 </Typography>
               </Box>
               <Box sx={{ textAlign: 'right' }}>

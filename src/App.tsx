@@ -4,13 +4,17 @@ import { AuthProvider } from './contexts/AuthContext';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { Layout } from './components/layout/Layout';
 import { LoginPage } from './pages/LoginPage';
-import { Dashboard } from './pages/Dashboard';
+import CommandDashboard from './pages/CommandDashboard';
+import { MedicalPage } from './pages/MedicalPage';
+import OperationsPage from './pages/OperationsPage';
 import { EPCRFormPagePDF } from './pages/EPCRFormPagePDF';
 import { EPCRFormPageSimple } from './pages/EPCRFormPageSimple';
 import { UserManagement } from './pages/UserManagement';
 import MemberManagement from './pages/MemberManagement';
 import MemberProfile from './pages/MemberProfile';
 import MemberForm from './components/members/MemberForm';
+import LogisticsPage from './pages/LogisticsPage';
+import PlanningPage from './pages/PlanningPage';
 import { initializeMockData } from './services/recordService';
 
 function App() {
@@ -36,7 +40,23 @@ function App() {
           <Route path="/dashboard" element={
             <ProtectedRoute>
               <Layout>
-                <Dashboard />
+                <CommandDashboard />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/medical" element={
+            <ProtectedRoute>
+              <Layout>
+                <MedicalPage />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/operations" element={
+            <ProtectedRoute>
+              <Layout>
+                <OperationsPage />
               </Layout>
             </ProtectedRoute>
           } />
@@ -118,6 +138,23 @@ function App() {
             <ProtectedRoute requiredPermission="manage_users">
               <Layout>
                 <MemberForm />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          
+          {/* Logistics and Planning Routes */}
+          <Route path="/logistics" element={
+            <ProtectedRoute>
+              <Layout>
+                <LogisticsPage />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/planning" element={
+            <ProtectedRoute>
+              <Layout>
+                <PlanningPage />
               </Layout>
             </ProtectedRoute>
           } />
