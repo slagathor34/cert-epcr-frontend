@@ -5,7 +5,7 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api
 
 class MemberService {
   private getAuthHeaders() {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('authToken');
     return token ? { Authorization: `Bearer ${token}` } : {};
   }
 
