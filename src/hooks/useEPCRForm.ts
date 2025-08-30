@@ -1,9 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useForm } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
 import { EPCRData, FormState, VitalSigns, TreatmentOption, CrewMember } from '../types/epcr';
-import { epcrSchema } from '../utils/validation';
-import { epcrAPI } from '../services/api';
+import { recordService } from '../services/recordService';
 
 interface UseEPCRFormOptions {
   initialData?: Partial<EPCRData>;
@@ -83,6 +81,25 @@ const defaultEPCRData: Partial<EPCRData> = {
     primaryCareProvider: { name: '' },
     receivingFacility: { name: '' },
   },
+  // New form sections
+  medications: [],
+  procedures: [],
+  narrative: {
+    description: '',
+    assessment: '',
+    plan: '',
+    responseToTreatment: '',
+    physicalFindings: [],
+  },
+  disposition: {
+    type: 'transport' as const,
+    destination: '',
+    transportMethod: '',
+    transportPriority: '',
+    patientCondition: '',
+    notes: '',
+    followupInstructions: '',
+  },
 };
 
 export const useEPCRForm = (options: UseEPCRFormOptions = {}) => {
@@ -112,7 +129,6 @@ export const useEPCRForm = (options: UseEPCRFormOptions = {}) => {
 
   const {
     watch,
-    handleSubmit,
     formState: { errors, isDirty, isValid, isSubmitting },
     setValue,
     getValues,
@@ -127,7 +143,7 @@ export const useEPCRForm = (options: UseEPCRFormOptions = {}) => {
     if (!data.id || !isDirty) return;
 
     try {
-      const savedData = await epcrAPI.saveDraft(data.id, data);
+      const savedData = await recordService.updateRecord(data.id, data);
       lastSaveRef.current = new Date().toISOString();
       
       setFormState(prev => ({
@@ -187,9 +203,9 @@ export const useEPCRForm = (options: UseEPCRFormOptions = {}) => {
       let savedData: EPCRData;
       
       if (data.id) {
-        savedData = await epcrAPI.update(data.id, data);
+        savedData = await recordService.updateRecord(data.id, data);
       } else {
-        savedData = await epcrAPI.create(data);
+        savedData = await recordService.saveRecord(data);
       }
 
       reset(savedData);
@@ -221,7 +237,8 @@ export const useEPCRForm = (options: UseEPCRFormOptions = {}) => {
         throw new Error('Cannot submit unsaved form');
       }
 
-      const submittedData = await epcrAPI.submit(data.id);
+      // For now, we'll just update the status since we don't have a submit endpoint in recordService
+      const submittedData = await recordService.updateRecord(data.id, { ...data, status: 'submitted' });
       
       setFormState(prev => ({
         ...prev,
@@ -250,7 +267,10 @@ export const useEPCRForm = (options: UseEPCRFormOptions = {}) => {
   // Load existing form data
   const loadForm = useCallback(async (id: string) => {
     try {
-      const data = await epcrAPI.getById(id);
+      const data = await recordService.getRecord(id);
+      if (!data) {
+        throw new Error('Record not found');
+      }
       reset(data);
       setFormState(prev => ({
         ...prev,
@@ -339,12 +359,23 @@ export const useEPCRForm = (options: UseEPCRFormOptions = {}) => {
     setValue('crewMembers', updatedCrewMembers, { shouldDirty: true });
   }, [getValues, setValue]);
 
+  // Wrapper functions to ensure proper return values
+  const handleSaveWrapper = useCallback(async () => {
+    const currentData = getValues();
+    return await saveForm(currentData);
+  }, [getValues, saveForm]);
+
+  const handleSubmitWrapper = useCallback(async () => {
+    const currentData = getValues();
+    return await submitForm(currentData);
+  }, [getValues, submitForm]);
+
   return {
     form,
     formState,
     actions: {
-      saveForm: handleSubmit(saveForm),
-      submitForm: handleSubmit(submitForm),
+      saveForm: handleSaveWrapper,
+      submitForm: handleSubmitWrapper,
       loadForm,
       addVitalSigns,
       removeVitalSigns,

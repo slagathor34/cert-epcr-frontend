@@ -77,6 +77,12 @@ export interface MedicalHistory {
   medicationStatus?: string;
   medicalHistory: string;
   reportCompletedBy?: string;
+  // Extended fields for Chief Complaint
+  onsetTime?: string;
+  duration?: string;
+  painScale?: string;
+  complaintCategory?: string;
+  associatedSymptoms?: string;
 }
 
 export interface GlasgowComaScale {
@@ -254,9 +260,41 @@ export interface EPCRData {
   notesPage: NotesPage;
   crewMembers: CrewMember[];
   signatures: Signatures;
+  // New form sections
+  medications?: Medication[];
+  procedures?: Procedure[];
+  narrative?: Narrative;
+  disposition?: Disposition;
   createdAt?: string;
   updatedAt?: string;
   status: 'draft' | 'completed' | 'submitted' | 'approved';
+  // AI Summary
+  aiSummary?: {
+    generatedAt: string;
+    generatedBy: string;
+    aiModel: string;
+    aiService: string;
+    clinicalSummary: string;
+    differentialDiagnosis: Array<{
+      diagnosis: string;
+      rationale: string;
+      probability?: 'high' | 'moderate' | 'low';
+      supportingFindings?: string[];
+      contraindications?: string[];
+    }>;
+    treatmentRecommendations: {
+      immediate: string[];
+      urgent: string[];
+      routine: string[];
+    };
+    clinicalConcerns: string[];
+    providerNotes?: string;
+    isEdited: boolean;
+    editedAt?: string;
+    editedBy?: string;
+    confidence?: number;
+    processingTime?: number;
+  };
   version?: number;
 }
 
@@ -315,4 +353,44 @@ export interface PatientRefusalData {
   risksExplained: boolean;
   patientCompetent: boolean;
   alternativesOffered: boolean;
+}
+
+// New interfaces for additional form components
+export interface Medication {
+  name: string;
+  dose: string;
+  route: string;
+  time: string;
+  administeredBy: string;
+  effect: string;
+}
+
+export interface Procedure {
+  name: string;
+  time: string;
+  performedBy: string;
+  outcome: string;
+  complications: string;
+}
+
+export interface Narrative {
+  description: string;
+  assessment: string;
+  plan: string;
+  responseToTreatment: string;
+  physicalFindings: string[];
+}
+
+export interface Disposition {
+  type: 'transport' | 'refusal' | 'cancelled' | 'no-transport';
+  destination?: string;
+  transportMethod?: string;
+  transportPriority?: string;
+  patientCondition?: string;
+  refusalType?: string;
+  refusalWitness?: string;
+  handoffProvider?: string;
+  handoffTime?: string;
+  notes?: string;
+  followupInstructions?: string;
 }

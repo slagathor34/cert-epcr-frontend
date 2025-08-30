@@ -13,7 +13,8 @@ const api = axios.create({
 // Request interceptor to add auth token
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('authToken');
+    // Check both possible token keys for compatibility
+    const token = localStorage.getItem('cert_epcr_token') || localStorage.getItem('authToken');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -29,8 +30,11 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('authToken');
-      window.location.href = '/login';
+      // TEMPORARILY DISABLED FOR DEVELOPMENT: Clear both possible token keys
+      // localStorage.removeItem('cert_epcr_token');
+      // localStorage.removeItem('authToken');
+      // window.location.href = '/login';
+      console.log('401 error intercepted but redirect disabled for development');
     }
     return Promise.reject(error);
   }

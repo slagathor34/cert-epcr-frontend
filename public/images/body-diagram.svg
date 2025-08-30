@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400">
+  <!-- Background -->
+  <rect width="800" height="400" fill="white" stroke="#000" stroke-width="1"/>
+  
+  <!-- Anterior Figure (Left Side) -->
+  <g id="anterior">
+    <text x="200" y="30" text-anchor="middle" font-size="16" font-weight="bold">ANTERIOR</text>
+    
+    <!-- Head -->
+    <circle cx="200" cy="60" r="20" fill="none" stroke="#000" stroke-width="2"/>
+    <text x="200" y="67" text-anchor="middle" font-size="14" font-weight="bold">9</text>
+    
+    <!-- Neck -->
+    <rect x="190" y="80" width="20" height="15" fill="none" stroke="#000" stroke-width="2"/>
+    
+    <!-- Torso -->
+    <rect x="170" y="95" width="60" height="70" fill="none" stroke="#000" stroke-width="2"/>
+    <text x="200" y="135" text-anchor="middle" font-size="18" font-weight="bold">18</text>
+    
+    <!-- Left Arm -->
+    <rect x="130" y="110" width="20" height="50" fill="none" stroke="#000" stroke-width="2"/>
+    <text x="140" y="140" text-anchor="middle" font-size="14" font-weight="bold">9</text>
+    
+    <!-- Right Arm -->
+    <rect x="250" y="110" width="20" height="50" fill="none" stroke="#000" stroke-width="2"/>
+    <text x="260" y="140" text-anchor="middle" font-size="14" font-weight="bold">9</text>
+    
+    <!-- Pelvis -->
+    <rect x="180" y="165" width="40" height="25" fill="none" stroke="#000" stroke-width="2"/>
+    <text x="200" y="182" text-anchor="middle" font-size="14" font-weight="bold">9</text>
+    
+    <!-- Left Leg (thigh) -->
+    <rect x="185" y="190" width="15" height="60" fill="none" stroke="#000" stroke-width="2"/>
+    <text x="150" y="225" text-anchor="middle" font-size="14" font-weight="bold">1</text>
+    
+    <!-- Right Leg (thigh) -->
+    <rect x="200" y="190" width="15" height="60" fill="none" stroke="#000" stroke-width="2"/>
+    <text x="250" y="225" text-anchor="middle" font-size="14" font-weight="bold">18</text>
+    
+    <!-- Left Lower Leg -->
+    <rect x="185" y="250" width="15" height="50" fill="none" stroke="#000" stroke-width="2"/>
+    
+    <!-- Right Lower Leg -->
+    <rect x="200" y="250" width="15" height="50" fill="none" stroke="#000" stroke-width="2"/>
+    
+    <!-- Left Foot -->
+    <ellipse cx="192" cy="310" rx="12" ry="8" fill="none" stroke="#000" stroke-width="2"/>
+    
+    <!-- Right Foot -->
+    <ellipse cx="207" cy="310" rx="12" ry="8" fill="none" stroke="#000" stroke-width="2"/>
+  </g>
+  
+  <!-- Posterior Figure (Right Side) -->
+  <g id="posterior">
+    <text x="600" y="30" text-anchor="middle" font-size="16" font-weight="bold">POSTERIOR</text>
+    
+    <!-- Head (back) -->
+    <circle cx="600" cy="60" r="20" fill="none" stroke="#000" stroke-width="2"/>
+    <text x="600" y="67" text-anchor="middle" font-size="14" font-weight="bold">18</text>
+    
+    <!-- Neck (back) -->
+    <rect x="590" y="80" width="20" height="15" fill="none" stroke="#000" stroke-width="2"/>
+    
+    <!-- Back -->
+    <rect x="570" y="95" width="60" height="70" fill="none" stroke="#000" stroke-width="2"/>
+    <text x="600" y="135" text-anchor="middle" font-size="18" font-weight="bold">18</text>
+    
+    <!-- Left Arm (back) -->
+    <rect x="530" y="110" width="20" height="50" fill="none" stroke="#000" stroke-width="2"/>
+    <text x="540" y="140" text-anchor="middle" font-size="14" font-weight="bold">9</text>
+    
+    <!-- Right Arm (back) -->
+    <rect x="650" y="110" width="20" height="50" fill="none" stroke="#000" stroke-width="2"/>
+    <text x="660" y="140" text-anchor="middle" font-size="14" font-weight="bold">9</text>
+    
+    <!-- Buttocks -->
+    <rect x="580" y="165" width="40" height="25" fill="none" stroke="#000" stroke-width="2"/>
+    <text x="590" y="182" text-anchor="middle" font-size="14" font-weight="bold">9</text>
+    <text x="610" y="182" text-anchor="middle" font-size="14" font-weight="bold">9</text>
+    
+    <!-- Left Leg (back, thigh) -->
+    <rect x="585" y="190" width="15" height="60" fill="none" stroke="#000" stroke-width="2"/>
+    
+    <!-- Right Leg (back, thigh) -->
+    <rect x="600" y="190" width="15" height="60" fill="none" stroke="#000" stroke-width="2"/>
+    
+    <!-- Left Lower Leg (back) -->
+    <rect x="585" y="250" width="15" height="50" fill="none" stroke="#000" stroke-width="2"/>
+    
+    <!-- Right Lower Leg (back) -->
+    <rect x="600" y="250" width="15" height="50" fill="none" stroke="#000" stroke-width="2"/>
+    
+    <!-- Left Foot (back) -->
+    <ellipse cx="592" cy="310" rx="12" ry="8" fill="none" stroke="#000" stroke-width="2"/>
+    
+    <!-- Right Foot (back) -->
+    <ellipse cx="607" cy="310" rx="12" ry="8" fill="none" stroke="#000" stroke-width="2"/>
+  </g>
+  
+  <!-- Bottom text -->
+  <text x="400" y="380" text-anchor="middle" font-size="12">Numbers indicate percentage of body surface area</text>
+</svg>

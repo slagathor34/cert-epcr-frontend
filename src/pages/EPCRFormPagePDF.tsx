@@ -15,7 +15,7 @@ import { GlasgowComaScaleCalculator } from '../components/interactive/GlasgowCom
 import { PhysicalAssessment } from '../components/forms/PhysicalAssessment';
 import { TraumaBloodLoss } from '../components/forms/TraumaBloodLoss';
 import { VitalSignsTimeTable } from '../components/forms/VitalSignsTimeTable';
-import { InteractiveBodyDiagram } from '../components/forms/InteractiveBodyDiagram';
+import { NumberedBodyDiagram } from '../components/forms/NumberedBodyDiagram';
 import { TreatmentChecklistPDF } from '../components/forms/TreatmentChecklistPDF';
 import { TransportSection } from '../components/forms/TransportSection';
 import { NotesPage } from '../components/forms/NotesPage';
@@ -373,7 +373,11 @@ export const EPCRFormPagePDF: React.FC = () => {
             </Box>
 
             {/* Body Diagram */}
-            <InteractiveBodyDiagram control={control} />
+            <NumberedBodyDiagram 
+              control={control} 
+              name="bodyDiagram.injuries"
+              label="Physical Assessment - Body Diagram"
+            />
 
             {/* Treatment Checklist */}
             <TreatmentChecklistPDF control={control} />

@@ -1,15 +1,18 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import { CustomThemeProvider } from './contexts/ThemeContext';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { Layout } from './components/layout/Layout';
 import { LoginPage } from './pages/LoginPage';
 import CommandDashboard from './pages/CommandDashboard';
 import { MedicalPage } from './pages/MedicalPage';
 import OperationsPage from './pages/OperationsPage';
+import { EPCRFormPage } from './pages/EPCRFormPage';
 import { EPCRFormPagePDF } from './pages/EPCRFormPagePDF';
 import { EPCRFormPageSimple } from './pages/EPCRFormPageSimple';
 import { UserManagement } from './pages/UserManagement';
+import { SystemSettings } from './pages/SystemSettings';
 import MemberManagement from './pages/MemberManagement';
 import MemberProfile from './pages/MemberProfile';
 import MemberForm from './components/members/MemberForm';
@@ -18,14 +21,15 @@ import PlanningPage from './pages/PlanningPage';
 import { initializeMockData } from './services/recordService';
 
 function App() {
-  // Initialize mock data on app start
+  // Initialize mock data on app start - TESTING BUILD CHANGES
   useEffect(() => {
     initializeMockData().catch(console.error);
   }, []);
 
   return (
-    <Router>
-      <AuthProvider>
+    <CustomThemeProvider>
+      <Router>
+        <AuthProvider>
         <Routes>
           {/* Public Routes */}
           <Route path="/login" element={<LoginPage />} />
@@ -45,14 +49,6 @@ function App() {
             </ProtectedRoute>
           } />
           
-          <Route path="/medical" element={
-            <ProtectedRoute>
-              <Layout>
-                <MedicalPage />
-              </Layout>
-            </ProtectedRoute>
-          } />
-          
           <Route path="/operations" element={
             <ProtectedRoute>
               <Layout>
@@ -61,10 +57,18 @@ function App() {
             </ProtectedRoute>
           } />
           
+          <Route path="/medical" element={
+            <ProtectedRoute>
+              <Layout>
+                <MedicalPage />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          
           <Route path="/epcr/new" element={
             <ProtectedRoute requiredPermission="create_reports">
               <Layout>
-                <EPCRFormPagePDF />
+                <EPCRFormPage />
               </Layout>
             </ProtectedRoute>
           } />
@@ -88,7 +92,7 @@ function App() {
           <Route path="/epcr/:id" element={
             <ProtectedRoute>
               <Layout>
-                <EPCRFormPagePDF />
+                <EPCRFormPage />
               </Layout>
             </ProtectedRoute>
           } />
@@ -96,7 +100,7 @@ function App() {
           <Route path="/epcr/:id/edit" element={
             <ProtectedRoute requiredPermission="edit_own_reports">
               <Layout>
-                <EPCRFormPagePDF />
+                <EPCRFormPage />
               </Layout>
             </ProtectedRoute>
           } />
@@ -105,6 +109,14 @@ function App() {
             <ProtectedRoute requiredPermission="manage_users">
               <Layout>
                 <UserManagement />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/admin/settings" element={
+            <ProtectedRoute requiredPermission="manage_system_settings">
+              <Layout>
+                <SystemSettings />
               </Layout>
             </ProtectedRoute>
           } />
@@ -165,8 +177,9 @@ function App() {
             </ProtectedRoute>
           } />
         </Routes>
-      </AuthProvider>
-    </Router>
+        </AuthProvider>
+      </Router>
+    </CustomThemeProvider>
   );
 }
 

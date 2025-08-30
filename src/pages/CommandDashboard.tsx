@@ -12,19 +12,26 @@ import {
   ListItemIcon,
   ListItemText,
   Chip,
-  LinearProgress,
   Avatar,
   Alert,
   AlertTitle,
-  Button,
   IconButton,
   Badge,
-  Divider,
   CircularProgress,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Tooltip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  Button,
 } from '@mui/material';
 import {
   Dashboard as DashboardIcon,
-  TrendingUp as TrendingIcon,
   Warning as WarningIcon,
   CheckCircle as CheckIcon,
   Group as GroupIcon,
@@ -35,162 +42,274 @@ import {
   ReportProblem as EmergencyIcon,
   Refresh as RefreshIcon,
   Timeline as TimelineIcon,
-  Speed as SpeedIcon,
-  Assignment as AssignmentIcon,
   Notifications as NotificationsIcon,
   People as PeopleIcon,
-  Build as BuildIcon,
   Radio as RadioIcon,
-  Place as PlaceIcon,
   AccessTime as TimeIcon,
+  Psychology as AIIcon,
+  Map as MapIcon,
+  BatteryFull as BatteryIcon,
+  SignalCellular4Bar as SignalIcon,
+  LocationOn as LocationIcon,
+  FlashOn as FlashIcon,
+  Visibility as ViewIcon,
+  FullscreenExit as FullscreenExitIcon,
 } from '@mui/icons-material';
-import {
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  PieChart,
-  Pie,
-  Cell,
-  BarChart,
-  Bar,
-} from 'recharts';
+
+// Import tactical components
+import TacticalMap from '../components/operations/TacticalMap';
+import MeshtasticChat from '../components/operations/MeshtasticChat';
+import AIAnalysisPanel from '../components/operations/AIAnalysisPanel';
+import FairgroundsHeatmap from '../components/charts/FairgroundsHeatmap';
+import TacticalMetricsGrid from '../components/charts/TacticalMetricsGrid';
+import IntegratedCommandMetrics from '../components/charts/IntegratedCommandMetrics';
 
 const CommandDashboard: React.FC = () => {
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [loading, setLoading] = useState(false);
+  const [tacticalDialogOpen, setTacticalDialogOpen] = useState(false);
+  const [selectedDialog, setSelectedDialog] = useState<string | null>(null);
 
-  // Mock real-time data that updates
+  // Enhanced real-time tactical data
   const [systemStatus, setSystemStatus] = useState({
     operational: 95,
     incidents: 4,
     unitsDeployed: 12,
-    personnelActive: 147,
+    personnelActive: 34,
     lastIncident: '00:12:34',
+    condition: 'ALPHA',
+    meshtasticNodes: 8,
+    aiAnalysisActive: true,
+    weatherStatus: 'Fair',
+    communicationsStatus: 'Optimal'
   });
 
-  // Mock data for different sections
-  const sectionSummary = [
+  // Enhanced tactical team data with real positioning
+  const tacticalTeams = [
     {
-      section: 'Medical',
-      icon: <MedicalIcon />,
-      color: '#d32f2f',
-      metrics: {
-        active: 23,
-        completed: 156,
-        pending: 8,
-        critical: 2,
-      },
-      trend: '+12%',
-      status: 'operational',
+      id: 'CERT-01',
+      leader: 'Lisa Walda',
+      members: 6,
+      position: { lat: 38.5816, lng: -121.4944 },
+      status: 'Deployed',
+      mission: 'Structure Fire Support',
+      battery: 85,
+      lastUpdate: '2 min ago',
+      temperature: 72
     },
     {
-      section: 'Operations',
-      icon: <SecurityIcon />,
-      color: '#1976d2',
-      metrics: {
-        active: 4,
-        completed: 89,
-        pending: 2,
-        critical: 1,
-      },
-      trend: '+5%',
-      status: 'elevated',
+      id: 'CERT-02', 
+      leader: 'Marcus Rodriguez',
+      members: 8,
+      position: { lat: 38.5822, lng: -121.4952 },
+      status: 'En Route',
+      mission: 'Medical Emergency',
+      battery: 92,
+      lastUpdate: '1 min ago',
+      temperature: 74
     },
     {
-      section: 'Logistics',
-      icon: <LogisticsIcon />,
-      color: '#f57c00',
-      metrics: {
-        active: 1247,
-        completed: 892,
-        pending: 23,
-        critical: 7,
-      },
-      trend: '-3%',
-      status: 'warning',
+      id: 'CERT-03',
+      leader: 'David Thompson',
+      members: 5,
+      position: { lat: 38.5808, lng: -121.4938 },
+      status: 'Staging',
+      mission: 'Search & Rescue',
+      battery: 78,
+      lastUpdate: '3 min ago',
+      temperature: 71
     },
     {
-      section: 'Planning',
-      icon: <PlanningIcon />,
-      color: '#2e7d32',
-      metrics: {
-        active: 5,
-        completed: 12,
-        pending: 3,
-        critical: 0,
-      },
-      trend: '+8%',
-      status: 'optimal',
-    },
-    {
-      section: 'Members',
-      icon: <GroupIcon />,
-      color: '#7b1fa2',
-      metrics: {
-        active: 147,
-        completed: 245,
-        pending: 12,
-        critical: 3,
-      },
-      trend: '+15%',
-      status: 'good',
-    },
+      id: 'CERT-04',
+      leader: 'Jennifer Chang',
+      members: 7,
+      position: { lat: 38.5835, lng: -121.4965 },
+      status: 'Active',
+      mission: 'Hazmat Response',
+      battery: 67,
+      lastUpdate: '45 sec ago',
+      temperature: 75
+    }
   ];
 
-  // Mock activity timeline data
-  const activityData = [
-    { time: '09:00', medical: 15, operations: 3, logistics: 45, planning: 2, members: 28 },
-    { time: '10:00', medical: 18, operations: 4, logistics: 52, planning: 3, members: 31 },
-    { time: '11:00', medical: 22, operations: 2, logistics: 48, planning: 4, members: 29 },
-    { time: '12:00', medical: 25, operations: 5, logistics: 55, planning: 3, members: 35 },
-    { time: '13:00', medical: 19, operations: 6, logistics: 60, planning: 5, members: 38 },
-    { time: '14:00', medical: 23, operations: 4, logistics: 58, planning: 4, members: 33 },
+  // Active incidents with enhanced tactical details
+  const activeIncidents = [
+    {
+      id: 'INC-2024-001',
+      type: 'Structure Fire',
+      location: '1234 Oak Street',
+      priority: 'Critical',
+      unitsAssigned: 3,
+      timeElapsed: '00:45:32',
+      commandPost: 'CP-01',
+      casualties: 2,
+      status: 'Active',
+      coordinates: { lat: 38.5815, lng: -121.4945 }
+    },
+    {
+      id: 'INC-2024-002',
+      type: 'Medical Emergency', 
+      location: '5678 Pine Ave',
+      priority: 'High',
+      unitsAssigned: 2,
+      timeElapsed: '00:23:15',
+      commandPost: 'CP-02',
+      casualties: 1,
+      status: 'Responding',
+      coordinates: { lat: 38.5822, lng: -121.4952 }
+    },
+    {
+      id: 'INC-2024-003',
+      type: 'Search & Rescue',
+      location: 'Warehouse District Grid 4',
+      priority: 'High',
+      unitsAssigned: 4,
+      timeElapsed: '01:12:08',
+      commandPost: 'CP-03', 
+      casualties: 0,
+      status: 'Contained',
+      coordinates: { lat: 38.5808, lng: -121.4938 }
+    },
+    {
+      id: 'INC-2024-004',
+      type: 'Hazmat Containment',
+      location: 'Industrial District Zone B',
+      priority: 'Critical',
+      unitsAssigned: 5,
+      timeElapsed: '02:15:44',
+      commandPost: 'CP-04',
+      casualties: 0,
+      status: 'Monitoring',
+      coordinates: { lat: 38.5835, lng: -121.4965 }
+    }
   ];
 
-  // Mock system health data
-  const systemHealth = [
-    { name: 'CAD System', status: 'online', uptime: '99.8%' },
-    { name: 'Radio Network', status: 'online', uptime: '98.5%' },
-    { name: 'GPS Tracking', status: 'online', uptime: '97.2%' },
-    { name: 'Database', status: 'online', uptime: '99.9%' },
-    { name: 'Mobile Data', status: 'degraded', uptime: '92.1%' },
-  ];
+  // AI Analysis Summary for Command Staff
+  const aiSummary = {
+    threatLevel: 'Moderate',
+    confidence: 87,
+    keyInsights: [
+      'Optimal resource allocation across all active incidents',
+      'Weather conditions favorable for air operations',
+      'Communications network operating at 95% efficiency',
+      'CERT-04 battery levels require monitoring within 2 hours'
+    ],
+    recommendations: [
+      'Deploy backup team to support CERT-04 operations',
+      'Consider establishing forward command post in Grid 4',
+      'Monitor air quality readings in Industrial District'
+    ],
+    riskFactors: [
+      'Wind shift possible at 1600 hours - affects hazmat containment',
+      'Resource fatigue expected after 4+ hour operations'
+    ]
+  };
 
-  // Mock alerts and notifications
+  // Communications status
+  const commStatus = {
+    meshtasticNodes: 8,
+    networkHealth: 95,
+    activeChannels: 4,
+    messageRate: 47,
+    signalStrength: 'Excellent',
+    lastMessage: '15 sec ago'
+  };
+
+  // Enhanced tactical alerts with priority and actionable intelligence
   const activeAlerts = [
-    { id: 1, type: 'critical', message: 'Unit availability below threshold (78%)', time: '2 min ago', section: 'Operations' },
-    { id: 2, type: 'warning', message: 'Low stock alert: N95 masks (12 remaining)', time: '5 min ago', section: 'Logistics' },
-    { id: 3, type: 'info', message: 'New CERT member training scheduled', time: '15 min ago', section: 'Members' },
-    { id: 4, type: 'warning', message: 'Wildfire risk assessment updated', time: '23 min ago', section: 'Planning' },
+    { 
+      id: 1, 
+      type: 'critical', 
+      message: 'CERT-04 battery critical - 67% remaining, estimated 2hrs operation time', 
+      time: '1 min ago', 
+      section: 'Operations',
+      actionRequired: true,
+      location: 'Industrial District Zone B'
+    },
+    { 
+      id: 2, 
+      type: 'critical', 
+      message: 'Environmental hazard detected - CO levels elevated in Sector 3', 
+      time: '3 min ago', 
+      section: 'Operations',
+      actionRequired: true,
+      location: 'Warehouse District Grid 4'
+    },
+    { 
+      id: 3, 
+      type: 'warning', 
+      message: 'Wind shift expected 1600hrs - may affect hazmat containment operations', 
+      time: '8 min ago', 
+      section: 'Planning',
+      actionRequired: false,
+      location: 'All Sectors'
+    },
+    { 
+      id: 4, 
+      type: 'warning', 
+      message: 'Resource allocation suboptimal - recommend team redistribution', 
+      time: '12 min ago', 
+      section: 'AI Analysis',
+      actionRequired: false,
+      location: 'Command'
+    },
+    { 
+      id: 5, 
+      type: 'info', 
+      message: 'Meshtastic network optimal - all 8 nodes reporting green status', 
+      time: '15 min ago', 
+      section: 'Communications',
+      actionRequired: false,
+      location: 'Network'
+    }
   ];
 
   const handleRefresh = () => {
     setLoading(true);
-    // Simulate data refresh
+    // Simulate tactical data refresh with realistic variations
     setTimeout(() => {
       setLastUpdated(new Date());
       setSystemStatus(prev => ({
         ...prev,
         incidents: Math.max(1, prev.incidents + Math.floor(Math.random() * 3) - 1),
         unitsDeployed: Math.max(5, prev.unitsDeployed + Math.floor(Math.random() * 5) - 2),
-        personnelActive: Math.max(100, prev.personnelActive + Math.floor(Math.random() * 20) - 10),
+        personnelActive: Math.max(25, prev.personnelActive + Math.floor(Math.random() * 10) - 5),
+        operational: Math.max(85, Math.min(100, prev.operational + Math.floor(Math.random() * 6) - 3)),
+        meshtasticNodes: Math.max(6, Math.min(8, prev.meshtasticNodes + Math.floor(Math.random() * 3) - 1)),
       }));
       setLoading(false);
-    }, 2000);
+    }, 1500);
   };
 
-  // Auto-refresh every 30 seconds
-  useEffect(() => {
-    const interval = setInterval(handleRefresh, 30000);
-    return () => clearInterval(interval);
-  }, []);
+  const handleOpenTacticalDialog = (type: string) => {
+    setSelectedDialog(type);
+    setTacticalDialogOpen(true);
+  };
+
+  const handleCloseTacticalDialog = () => {
+    setTacticalDialogOpen(false);
+    setSelectedDialog(null);
+  };
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'Critical': return 'error';
+      case 'High': return 'warning'; 
+      case 'Medium': return 'info';
+      case 'Low': return 'success';
+      default: return 'default';
+    }
+  };
+
+  const getTeamStatusColor = (status: string) => {
+    switch (status) {
+      case 'Active': return 'success';
+      case 'Deployed': return 'info';
+      case 'En Route': return 'warning';
+      case 'Staging': return 'default';
+      default: return 'default';
+    }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -215,64 +334,180 @@ const CommandDashboard: React.FC = () => {
     }
   };
 
+  // Auto-refresh every 30 seconds
+  useEffect(() => {
+    const interval = setInterval(handleRefresh, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
-      {/* Header */}
-      <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Box>
-          <Typography variant="h3" component="h1" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <DashboardIcon sx={{ fontSize: 'inherit', color: 'primary.main' }} />
-            Command Dashboard
-          </Typography>
-          <Typography variant="h6" color="text.secondary">
-            Real-time operational overview and system status monitoring
-          </Typography>
+      {/* Enhanced Command Header */}
+      <Box sx={{ mb: 4 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Box>
+            <Typography variant="h3" component="h1" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <DashboardIcon sx={{ fontSize: 'inherit', color: 'primary.main' }} />
+              🚀 Unified Command Center
+            </Typography>
+            <Typography variant="h6" color="text.secondary">
+              Medical • Operations • Logistics • Planning • Members - Integrated C4I
+            </Typography>
+          </Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+            <Card sx={{ bgcolor: systemStatus.condition === 'ALPHA' ? 'error.50' : 'success.50', minWidth: 120 }}>
+              <CardContent sx={{ pb: '16px !important', textAlign: 'center' }}>
+                <Typography variant="h6" color={systemStatus.condition === 'ALPHA' ? 'error.main' : 'success.main'}>
+                  CONDITION: {systemStatus.condition}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  {systemStatus.incidents} Active Incidents
+                </Typography>
+              </CardContent>
+            </Card>
+            <Box sx={{ textAlign: 'right' }}>
+              <Typography variant="body2" color="text.secondary">
+                Last updated: {lastUpdated.toLocaleTimeString()}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                Auto-refresh: 30s
+              </Typography>
+            </Box>
+            <IconButton onClick={handleRefresh} disabled={loading} size="large">
+              {loading ? <CircularProgress size={24} /> : <RefreshIcon />}
+            </IconButton>
+          </Box>
         </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Typography variant="body2" color="text.secondary">
-            Last updated: {lastUpdated.toLocaleTimeString()}
-          </Typography>
-          <IconButton onClick={handleRefresh} disabled={loading}>
-            {loading ? <CircularProgress size={24} /> : <RefreshIcon />}
-          </IconButton>
+        
+        {/* Tactical Action Bar */}
+        <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+          <Button 
+            variant="outlined" 
+            startIcon={<MapIcon />} 
+            onClick={() => handleOpenTacticalDialog('map')}
+            size="small"
+          >
+            Tactical Map
+          </Button>
+          <Button 
+            variant="outlined" 
+            startIcon={<RadioIcon />} 
+            onClick={() => handleOpenTacticalDialog('comms')}
+            size="small"
+          >
+            Meshtastic Net
+          </Button>
+          <Button 
+            variant="outlined" 
+            startIcon={<AIIcon />} 
+            onClick={() => handleOpenTacticalDialog('ai')}
+            size="small"
+          >
+            AI Analysis
+          </Button>
+          <Button 
+            variant="outlined" 
+            startIcon={<ViewIcon />} 
+            onClick={() => window.open('/operations', '_blank')}
+            size="small"
+          >
+            Full Operations Center
+          </Button>
         </Box>
       </Box>
 
-      {/* Critical Alerts */}
+      {/* Integrated Command Metrics - All Sections */}
+      <Box sx={{ mb: 4 }}>
+        <IntegratedCommandMetrics />
+      </Box>
+
+      {/* Enhanced Tactical Alerts */}
       <Grid container spacing={2} sx={{ mb: 4 }}>
-        <Grid item xs={12} md={8}>
-          <Alert severity="info" sx={{ mb: 1 }}>
-            <AlertTitle>System Status: OPERATIONAL</AlertTitle>
-            All critical systems online. {systemStatus.incidents} active incidents, {systemStatus.unitsDeployed} units deployed.
+        <Grid item xs={12} md={4}>
+          <Alert severity={systemStatus.condition === 'ALPHA' ? 'error' : 'success'} sx={{ animation: systemStatus.condition === 'ALPHA' ? 'pulse 2s infinite' : 'none' }}>
+            <AlertTitle>🚨 TACTICAL STATUS</AlertTitle>
+            CONDITION {systemStatus.condition} - {systemStatus.incidents} active incidents across {systemStatus.unitsDeployed} operational zones
           </Alert>
         </Grid>
         <Grid item xs={12} md={4}>
-          <Alert severity={systemStatus.incidents > 3 ? "warning" : "success"}>
-            <AlertTitle>Activity Level: {systemStatus.incidents > 3 ? "ELEVATED" : "NORMAL"}</AlertTitle>
-            Last incident: {systemStatus.lastIncident} ago
+          <Alert severity={commStatus.networkHealth > 90 ? 'success' : 'warning'}>
+            <AlertTitle>📡 COMMUNICATIONS</AlertTitle>
+            Meshtastic: {commStatus.meshtasticNodes}/8 nodes • Network health: {commStatus.networkHealth}%
+          </Alert>
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <Alert severity={aiSummary.confidence > 80 ? 'info' : 'warning'}>
+            <AlertTitle>🤖 AI ANALYSIS</AlertTitle>
+            Threat level: {aiSummary.threatLevel} • Confidence: {aiSummary.confidence}% • {aiSummary.recommendations.length} recommendations
           </Alert>
         </Grid>
       </Grid>
 
-      {/* Key Performance Indicators */}
+      {/* Enhanced Tactical KPIs */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
         <Grid item xs={12} sm={6} md={3}>
-          <Card>
+          <Card sx={{ cursor: 'pointer' }} onClick={() => handleOpenTacticalDialog('map')}>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <Box>
                   <Typography color="text.secondary" gutterBottom variant="h6">
-                    System Health
+                    Tactical Teams
                   </Typography>
-                  <Typography variant="h4" color="success.main">
-                    {systemStatus.operational}%
+                  <Typography variant="h4" color="primary.main">
+                    {tacticalTeams.length}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    All systems operational
+                    {tacticalTeams.filter(t => t.status === 'Active' || t.status === 'Deployed').length} operational
                   </Typography>
                 </Box>
-                <Avatar sx={{ bgcolor: 'success.light', width: 56, height: 56 }}>
-                  <CheckIcon />
+                <Avatar sx={{ bgcolor: 'primary.light', width: 56, height: 56 }}>
+                  <MapIcon />
+                </Avatar>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid item xs={12} sm={6} md={3}>
+          <Card sx={{ cursor: 'pointer' }} onClick={() => handleOpenTacticalDialog('comms')}>
+            <CardContent>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Box>
+                  <Typography color="text.secondary" gutterBottom variant="h6">
+                    Meshtastic Network
+                  </Typography>
+                  <Typography variant="h4" color={systemStatus.meshtasticNodes >= 8 ? "success.main" : "warning.main"}>
+                    {systemStatus.meshtasticNodes}/8
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Nodes online • {commStatus.messageRate} msgs/hr
+                  </Typography>
+                </Box>
+                <Avatar sx={{ bgcolor: systemStatus.meshtasticNodes >= 8 ? 'success.light' : 'warning.light', width: 56, height: 56 }}>
+                  <SignalIcon />
+                </Avatar>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid item xs={12} sm={6} md={3}>
+          <Card sx={{ cursor: 'pointer' }} onClick={() => handleOpenTacticalDialog('ai')}>
+            <CardContent>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Box>
+                  <Typography color="text.secondary" gutterBottom variant="h6">
+                    AI Analysis
+                  </Typography>
+                  <Typography variant="h4" color={aiSummary.confidence > 80 ? "info.main" : "warning.main"}>
+                    {aiSummary.confidence}%
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Confidence • {aiSummary.threatLevel} threat
+                  </Typography>
+                </Box>
+                <Avatar sx={{ bgcolor: aiSummary.confidence > 80 ? 'info.light' : 'warning.light', width: 56, height: 56 }}>
+                  <AIIcon />
                 </Avatar>
               </Box>
             </CardContent>
@@ -287,61 +522,15 @@ const CommandDashboard: React.FC = () => {
                   <Typography color="text.secondary" gutterBottom variant="h6">
                     Active Incidents
                   </Typography>
-                  <Typography variant="h4" color={systemStatus.incidents > 3 ? "warning.main" : "primary.main"}>
+                  <Typography variant="h4" color={systemStatus.incidents > 3 ? "error.main" : "success.main"}>
                     {systemStatus.incidents}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Emergency responses
+                    {activeIncidents.filter(i => i.priority === 'Critical').length} critical priority
                   </Typography>
                 </Box>
-                <Avatar sx={{ bgcolor: systemStatus.incidents > 3 ? 'warning.light' : 'primary.light', width: 56, height: 56 }}>
+                <Avatar sx={{ bgcolor: systemStatus.incidents > 3 ? 'error.light' : 'success.light', width: 56, height: 56 }}>
                   <EmergencyIcon />
-                </Avatar>
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <Box>
-                  <Typography color="text.secondary" gutterBottom variant="h6">
-                    Units Deployed
-                  </Typography>
-                  <Typography variant="h4" color="info.main">
-                    {systemStatus.unitsDeployed}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Active response units
-                  </Typography>
-                </Box>
-                <Avatar sx={{ bgcolor: 'info.light', width: 56, height: 56 }}>
-                  <SecurityIcon />
-                </Avatar>
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <Box>
-                  <Typography color="text.secondary" gutterBottom variant="h6">
-                    Personnel Active
-                  </Typography>
-                  <Typography variant="h4" color="secondary.main">
-                    {systemStatus.personnelActive}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    On-duty members
-                  </Typography>
-                </Box>
-                <Avatar sx={{ bgcolor: 'secondary.light', width: 56, height: 56 }}>
-                  <PeopleIcon />
                 </Avatar>
               </Box>
             </CardContent>
@@ -350,96 +539,145 @@ const CommandDashboard: React.FC = () => {
       </Grid>
 
       <Grid container spacing={3}>
-        {/* Section Status Overview */}
+        {/* Tactical Team Status Table */}
         <Grid item xs={12} lg={8}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <TimelineIcon color="primary" />
-                Section Status Overview
+                <GroupIcon color="primary" />
+                Deployed Tactical Teams Status
               </Typography>
-              <Grid container spacing={2}>
-                {sectionSummary.map((section, index) => (
-                  <Grid item xs={12} sm={6} md={4} key={index}>
-                    <Paper sx={{ p: 2, border: '1px solid', borderColor: 'divider' }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                        <Avatar sx={{ bgcolor: section.color, width: 40, height: 40 }}>
-                          {section.icon}
-                        </Avatar>
-                        <Box>
-                          <Typography variant="h6" fontWeight="medium">
-                            {section.section}
+              <TableContainer>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell><strong>Team ID</strong></TableCell>
+                      <TableCell><strong>Leader</strong></TableCell>
+                      <TableCell align="center"><strong>Members</strong></TableCell>
+                      <TableCell><strong>Status</strong></TableCell>
+                      <TableCell><strong>Mission</strong></TableCell>
+                      <TableCell align="center"><strong>Battery</strong></TableCell>
+                      <TableCell><strong>Position</strong></TableCell>
+                      <TableCell><strong>Last Update</strong></TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {tacticalTeams.map((team) => (
+                      <TableRow key={team.id} hover>
+                        <TableCell>
+                          <Typography variant="body2" fontWeight="bold">
+                            {team.id}
                           </Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2">
+                            {team.leader}
+                          </Typography>
+                        </TableCell>
+                        <TableCell align="center">
+                          <Badge badgeContent={team.members} color="primary">
+                            <PeopleIcon />
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Chip 
+                            label={team.status}
+                            color={getTeamStatusColor(team.status) as any}
+                            size="small"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2" sx={{ maxWidth: 150 }} noWrap>
+                            {team.mission}
+                          </Typography>
+                        </TableCell>
+                        <TableCell align="center">
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <Chip 
-                              label={section.status.toUpperCase()}
-                              color={getStatusColor(section.status) as any}
-                              size="small"
+                            <BatteryIcon 
+                              fontSize="small" 
+                              color={team.battery > 70 ? 'success' : team.battery > 40 ? 'warning' : 'error'}
                             />
-                            <Typography variant="body2" color="text.secondary">
-                              {section.trend}
+                            <Typography variant="caption">
+                              {team.battery}%
                             </Typography>
                           </Box>
-                        </Box>
-                      </Box>
-                      <Grid container spacing={1}>
-                        <Grid item xs={6}>
-                          <Typography variant="caption" color="text.secondary">Active</Typography>
-                          <Typography variant="body2" fontWeight="bold">{section.metrics.active}</Typography>
-                        </Grid>
-                        <Grid item xs={6}>
-                          <Typography variant="caption" color="text.secondary">Completed</Typography>
-                          <Typography variant="body2" fontWeight="bold">{section.metrics.completed}</Typography>
-                        </Grid>
-                        <Grid item xs={6}>
-                          <Typography variant="caption" color="text.secondary">Pending</Typography>
-                          <Typography variant="body2" fontWeight="bold">{section.metrics.pending}</Typography>
-                        </Grid>
-                        <Grid item xs={6}>
-                          <Typography variant="caption" color="text.secondary">Critical</Typography>
-                          <Typography variant="body2" fontWeight="bold" color={section.metrics.critical > 0 ? 'error.main' : 'text.primary'}>
-                            {section.metrics.critical}
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="caption">
+                            {team.position.lat.toFixed(4)}, {team.position.lng.toFixed(4)}
                           </Typography>
-                        </Grid>
-                      </Grid>
-                    </Paper>
-                  </Grid>
-                ))}
-              </Grid>
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="caption" color="text.secondary">
+                            {team.lastUpdate}
+                          </Typography>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+              <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Typography variant="caption" color="text.secondary">
+                  Real-time tactical positioning via Meshtastic network
+                </Typography>
+                <Button 
+                  size="small" 
+                  startIcon={<MapIcon />} 
+                  onClick={() => handleOpenTacticalDialog('map')}
+                >
+                  View on Tactical Map
+                </Button>
+              </Box>
             </CardContent>
           </Card>
         </Grid>
 
-        {/* Active Alerts */}
+        {/* Enhanced Tactical Alerts with Actions */}
         <Grid item xs={12} lg={4}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <NotificationsIcon color="warning" />
-                Active Alerts
+                Priority Tactical Alerts
               </Typography>
-              <List dense>
+              <List dense sx={{ maxHeight: 400, overflow: 'auto' }}>
                 {activeAlerts.map((alert, index) => (
-                  <ListItem key={alert.id} divider>
-                    <ListItemIcon>
-                      <Avatar sx={{ bgcolor: `${getAlertColor(alert.type)}.light`, width: 32, height: 32 }}>
-                        <WarningIcon fontSize="small" />
+                  <ListItem key={alert.id} divider sx={{ flexDirection: 'column', alignItems: 'flex-start', py: 1 }}>
+                    <Box sx={{ display: 'flex', width: '100%', alignItems: 'flex-start', gap: 1 }}>
+                      <Avatar sx={{ bgcolor: `${getAlertColor(alert.type)}.light`, width: 28, height: 28, mt: 0.5 }}>
+                        {alert.type === 'critical' ? <EmergencyIcon fontSize="small" /> : 
+                         alert.type === 'warning' ? <WarningIcon fontSize="small" /> : 
+                         <NotificationsIcon fontSize="small" />}
                       </Avatar>
-                    </ListItemIcon>
-                    <ListItemText
-                      primary={
-                        <Typography variant="body2" fontWeight="medium">
+                      <Box sx={{ flex: 1 }}>
+                        <Typography variant="body2" fontWeight="medium" sx={{ mb: 0.5 }}>
                           {alert.message}
                         </Typography>
-                      }
-                      secondary={
-                        <Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
                           <Typography variant="caption" color="text.secondary">
                             {alert.section} • {alert.time}
                           </Typography>
+                          {alert.location && (
+                            <Chip 
+                              label={alert.location}
+                              size="small"
+                              variant="outlined"
+                              icon={<LocationIcon />}
+                              sx={{ height: 20, fontSize: '0.65rem' }}
+                            />
+                          )}
                         </Box>
-                      }
-                    />
+                        {alert.actionRequired && (
+                          <Chip 
+                            label="ACTION REQUIRED"
+                            color="error"
+                            size="small"
+                            sx={{ height: 20, fontSize: '0.65rem', fontWeight: 'bold' }}
+                          />
+                        )}
+                      </Box>
+                    </Box>
                   </ListItem>
                 ))}
               </List>
@@ -447,121 +685,151 @@ const CommandDashboard: React.FC = () => {
           </Card>
         </Grid>
 
-        {/* Activity Timeline Chart */}
-        <Grid item xs={12} lg={8}>
+        {/* AI Analysis Summary Panel */}
+        <Grid item xs={12}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <TrendingIcon color="primary" />
-                Activity Timeline (Last 6 Hours)
+                <AIIcon color="secondary" />
+                AI Situational Analysis & Command Recommendations
               </Typography>
-              <ResponsiveContainer width="100%" height={300}>
-                <AreaChart data={activityData}>
-                  <defs>
-                    <linearGradient id="medicalGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#d32f2f" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#d32f2f" stopOpacity={0.1}/>
-                    </linearGradient>
-                    <linearGradient id="operationsGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#1976d2" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#1976d2" stopOpacity={0.1}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-                  <XAxis 
-                    dataKey="time" 
-                    tick={{ fontSize: 12 }}
-                    stroke="#666"
-                  />
-                  <YAxis 
-                    tick={{ fontSize: 12 }}
-                    stroke="#666"
-                  />
-                  <Tooltip />
-                  <Legend />
-                  <Area
-                    type="monotone"
-                    dataKey="medical"
-                    stackId="1"
-                    stroke="#d32f2f"
-                    fill="url(#medicalGradient)"
-                    name="Medical"
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="operations"
-                    stackId="1"
-                    stroke="#1976d2"
-                    fill="url(#operationsGradient)"
-                    name="Operations"
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="logistics"
-                    stackId="1"
-                    stroke="#f57c00"
-                    fill="#f57c00"
-                    fillOpacity={0.2}
-                    name="Logistics"
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="planning"
-                    stackId="1"
-                    stroke="#2e7d32"
-                    fill="#2e7d32"
-                    fillOpacity={0.2}
-                    name="Planning"
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="members"
-                    stackId="1"
-                    stroke="#7b1fa2"
-                    fill="#7b1fa2"
-                    fillOpacity={0.2}
-                    name="Members"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* System Health */}
-        <Grid item xs={12} lg={4}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <SpeedIcon color="success" />
-                System Health
-              </Typography>
-              <List dense>
-                {systemHealth.map((system, index) => (
-                  <ListItem key={index} divider>
-                    <ListItemIcon>
-                      <CheckIcon 
-                        color={system.status === 'online' ? 'success' : 'warning'} 
-                      />
-                    </ListItemIcon>
-                    <ListItemText
-                      primary={system.name}
-                      secondary={`${system.uptime} uptime`}
-                    />
-                    <Chip 
-                      label={system.status.toUpperCase()}
-                      color={getStatusColor(system.status) as any}
-                      size="small"
-                    />
-                  </ListItem>
-                ))}
-              </List>
+              <Grid container spacing={3}>
+                <Grid item xs={12} md={4}>
+                  <Typography variant="subtitle2" gutterBottom color="primary.main">
+                    🎯 Key Insights
+                  </Typography>
+                  <List dense>
+                    {aiSummary.keyInsights.map((insight, index) => (
+                      <ListItem key={index} sx={{ py: 0 }}>
+                        <ListItemIcon sx={{ minWidth: 24 }}>
+                          <CheckIcon color="info" fontSize="small" />
+                        </ListItemIcon>
+                        <ListItemText>
+                          <Typography variant="caption">{insight}</Typography>
+                        </ListItemText>
+                      </ListItem>
+                    ))}
+                  </List>
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <Typography variant="subtitle2" gutterBottom color="success.main">
+                    💡 Command Recommendations
+                  </Typography>
+                  <List dense>
+                    {aiSummary.recommendations.map((rec, index) => (
+                      <ListItem key={index} sx={{ py: 0 }}>
+                        <ListItemIcon sx={{ minWidth: 24 }}>
+                          <FlashIcon color="success" fontSize="small" />
+                        </ListItemIcon>
+                        <ListItemText>
+                          <Typography variant="caption">{rec}</Typography>
+                        </ListItemText>
+                      </ListItem>
+                    ))}
+                  </List>
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <Typography variant="subtitle2" gutterBottom color="warning.main">
+                    ⚠️ Risk Factors
+                  </Typography>
+                  <List dense>
+                    {aiSummary.riskFactors.map((risk, index) => (
+                      <ListItem key={index} sx={{ py: 0 }}>
+                        <ListItemIcon sx={{ minWidth: 24 }}>
+                          <WarningIcon color="warning" fontSize="small" />
+                        </ListItemIcon>
+                        <ListItemText>
+                          <Typography variant="caption">{risk}</Typography>
+                        </ListItemText>
+                      </ListItem>
+                    ))}
+                  </List>
+                </Grid>
+              </Grid>
+              <Box sx={{ mt: 2, pt: 2, borderTop: 1, borderColor: 'divider', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Typography variant="caption" color="text.secondary">
+                  AI Analysis Confidence: {aiSummary.confidence}% • Threat Level: {aiSummary.threatLevel} • Updated: {lastUpdated.toLocaleTimeString()}
+                </Typography>
+                <Button 
+                  size="small" 
+                  startIcon={<AIIcon />} 
+                  onClick={() => handleOpenTacticalDialog('ai')}
+                >
+                  Full AI Analysis
+                </Button>
+              </Box>
             </CardContent>
           </Card>
         </Grid>
       </Grid>
+
+      {/* Enhanced Tactical Analytics Section */}
+      <Box sx={{ mt: 4 }}>
+        <Typography variant="h4" sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 1 }}>
+          <TimelineIcon color="primary" />
+          Advanced Tactical Analytics & Situational Intelligence
+        </Typography>
+        
+        {/* Fair Grounds Population Heatmap */}
+        <Grid container spacing={3} sx={{ mb: 4 }}>
+          <Grid item xs={12}>
+            <FairgroundsHeatmap />
+          </Grid>
+        </Grid>
+
+        {/* Tactical Metrics Grid */}
+        <Box sx={{ mb: 4 }}>
+          <TacticalMetricsGrid />
+        </Box>
+      </Box>
+
+      {/* Tactical Component Dialogs */}
+      <Dialog 
+        fullScreen 
+        open={tacticalDialogOpen}
+        onClose={handleCloseTacticalDialog}
+        TransitionComponent={React.forwardRef((props: any, ref) => <Box ref={ref} {...props} />)}
+      >
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Typography variant="h5" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            {selectedDialog === 'map' && <><MapIcon /> Tactical Map - Full Command View</>}
+            {selectedDialog === 'comms' && <><RadioIcon /> Meshtastic Communications - Command Net</>}
+            {selectedDialog === 'ai' && <><AIIcon /> AI Analysis - Command Intelligence</>}
+          </Typography>
+          <IconButton onClick={handleCloseTacticalDialog}>
+            <FullscreenExitIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent sx={{ p: 0 }}>
+          {selectedDialog === 'map' && <TacticalMap />}
+          {selectedDialog === 'comms' && <MeshtasticChat />}
+          {selectedDialog === 'ai' && <AIAnalysisPanel />}
+        </DialogContent>
+      </Dialog>
     </Container>
   );
 };
+
+// Add pulse animation for critical alerts
+const pulseKeyframes = `
+  @keyframes pulse {
+    0% {
+      box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.7);
+    }
+    70% {
+      box-shadow: 0 0 0 10px rgba(244, 67, 54, 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(244, 67, 54, 0);
+    }
+  }
+`;
+
+// Inject CSS for animations
+if (typeof document !== 'undefined') {
+  const style = document.createElement('style');
+  style.textContent = pulseKeyframes;
+  document.head.appendChild(style);
+}
 
 export default CommandDashboard;

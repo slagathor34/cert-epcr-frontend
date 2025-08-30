@@ -2,372 +2,560 @@ import React, { useEffect, useState } from 'react';
 import {
   Container,
   Box,
-  Typography,
   Button,
-  Stepper,
-  Step,
-  StepLabel,
-  Paper,
   Alert,
+  Snackbar,
   CircularProgress,
-  Chip,
-  Stack,
+  Menu,
+  MenuItem,
+  Paper,
+  Typography,
 } from '@mui/material';
 import {
-  Save as SaveIcon,
-  Send as SendIcon,
   Print as PrintIcon,
+  Save as SaveIcon,
+  FileDownload as ExportIcon,
+  Send as SendIcon,
   PictureAsPdf as PdfIcon,
-  ArrowBack as ArrowBackIcon,
-  ArrowForward as ArrowForwardIcon,
+  Dashboard as DashboardIcon,
 } from '@mui/icons-material';
+import { useForm } from 'react-hook-form';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useEPCRForm } from '../hooks/useEPCRForm';
+import { useAuth } from '../contexts/AuthContext';
+import { EPCRData } from '../types/epcr';
+import { exportSingleRecordToCSV, exportSingleRecordToJSON, exportPatientSummary } from '../utils/exportUtils';
+import { recordService } from '../services/recordService';
+import { FormHeader } from '../components/forms/FormHeader';
 import { PatientDemographicsForm } from '../components/forms/PatientDemographicsForm';
-import { IncidentInformationForm } from '../components/forms/IncidentInformationForm';
-import { VitalSignsForm } from '../components/forms/VitalSignsForm';
+import { CrewPPEGrid } from '../components/forms/CrewPPEGrid';
+import { MedicalInformation } from '../components/forms/MedicalInformation';
+import { GlasgowComaScaleCalculator } from '../components/interactive/GlasgowComaScaleCalculator';
+import { PhysicalAssessment } from '../components/forms/PhysicalAssessment';
+import { TraumaBloodLoss } from '../components/forms/TraumaBloodLoss';
+import { VitalSignsCollector } from '../components/forms/VitalSignsCollector';
+import { NumberedBodyDiagram } from '../components/forms/NumberedBodyDiagram';
+import { TreatmentChecklistPDF } from '../components/forms/TreatmentChecklistPDF';
+import { TransportSection } from '../components/forms/TransportSection';
+import { NotesPage } from '../components/forms/NotesPage';
+import { AISummaryGenerator } from '../components/forms/AISummaryGenerator';
 import { exportEPCRToPDF } from '../services/pdfExport';
 
-const steps = [
-  'Patient Demographics',
-  'Incident Information',
-  'Chief Complaint',
-  'Vital Signs',
-  'Assessment',
-  'Medications & Procedures',
-  'Narrative',
-  'Disposition',
-  'Review & Submit',
-];
+const defaultFormData: Partial<EPCRData> = {
+  reportNumber: '',
+  patientDemographics: {
+    lastName: '',
+    firstName: '',
+    middleName: '',
+    address: '',
+    city: '',
+    state: '',
+    zip: '',
+    dateOfBirth: '',
+    age: 0,
+    gender: 'M',
+    race: '',
+    weight: 0,
+    height: 0,
+  },
+  incidentInformation: {
+    incidentNumber: '',
+    date: '',
+    time: '',
+    patientNumber: 1,
+    totalPatients: 1,
+    respondingUnits: [],
+    incidentLocation: '',
+    city: '',
+    state: '',
+    zip: '',
+  },
+  crewPPE: {
+    crewMemberA: { eyeProtection: false, gloves: false, gown: false, n95Mask: false },
+    crewMemberB: { eyeProtection: false, gloves: false, gown: false, n95Mask: false },
+    crewMemberC: { eyeProtection: false, gloves: false, gown: false, n95Mask: false },
+    crewMemberD: { eyeProtection: false, gloves: false, gown: false, n95Mask: false },
+    crewMemberE: { eyeProtection: false, gloves: false, gown: false, n95Mask: false },
+  },
+  medicalHistory: {
+    allergies: '',
+    medications: '',
+    medicalHistory: '',
+  },
+  physicalAssessment: {
+    skinColor: '',
+    skinTemperature: '',
+    skinMoisture: '',
+    pupils: { left: '', right: '' },
+    perl: false,
+    lungSounds: { left: '', right: '' },
+  },
+  trauma: {
+    head: 'none',
+    neckBack: 'none',
+    chest: 'none',
+    abdomen: 'none',
+    pelvis: 'none',
+    legLeft: 'none',
+    legRight: 'none',
+    armLeft: 'none',
+    armRight: 'none',
+  },
+  vitalSigns: [],
+  bodyDiagramInjuries: [],
+  transportInformation: {
+    transportingAgency: '',
+    vehicleNumber: '',
+    destination: '',
+    destinationType: 'hospital',
+    mileage: { begin: 0, end: 0, total: 0 },
+    patientRefusal: { refused: false },
+  },
+  treatmentProvided: {
+    airwayManagement: [],
+    breathing: [],
+    circulation: [],
+    medications: [],
+    procedures: [],
+    immobilization: [],
+    other: [],
+  },
+  notesPage: {
+    narrative: '',
+    additionalNotes: '',
+  },
+  crewMembers: [],
+  signatures: {
+    primaryCareProvider: { name: '' },
+    receivingFacility: { name: '' },
+  },
+  status: 'draft',
+};
 
 export const EPCRFormPage: React.FC = () => {
   const { id } = useParams<{ id?: string }>();
   const navigate = useNavigate();
-  const [activeStep, setActiveStep] = useState(0);
-  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
-
-  const { form, formState, actions } = useEPCRForm({
-    autoSaveInterval: 30000, // 30 seconds
-    onSave: () => {
-      setSaveStatus('saved');
-      setTimeout(() => setSaveStatus('idle'), 3000);
-    },
-    onError: (error) => {
-      console.error('Form error:', error);
-      setSaveStatus('error');
-      setTimeout(() => setSaveStatus('idle'), 5000);
-    },
+  const { isAuthenticated, user } = useAuth();
+  const [exportMenuAnchor, setExportMenuAnchor] = useState<null | HTMLElement>(null);
+  const [currentRecord, setCurrentRecord] = useState<EPCRData | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const { control, handleSubmit, reset, getValues, watch, setValue, formState: { isDirty } } = useForm<EPCRData>({
+    defaultValues: defaultFormData as EPCRData,
   });
 
-  const { control, formState: reactHookFormState } = form;
-  const { isDirty, isValid } = reactHookFormState;
-
-  // Load existing form if ID is provided
+  // Load existing record data when viewing/editing
   useEffect(() => {
-    if (id) {
-      actions.loadForm(id).catch((error) => {
-        console.error('Failed to load form:', error);
-      });
-    }
-  }, [id, actions]);
-
-  const handleNext = () => {
-    if (activeStep < steps.length - 1) {
-      setActiveStep((prevActiveStep) => prevActiveStep + 1);
-    }
-  };
-
-  const handleBack = () => {
-    setActiveStep((prevActiveStep) => prevActiveStep - 1);
-  };
-
-  const handleSave = async () => {
-    setSaveStatus('saving');
-    try {
-      await actions.saveForm();
-      setSaveStatus('saved');
-    } catch (error) {
-      setSaveStatus('error');
-    }
-  };
-
-  const handleSubmit = async () => {
-    if (!isValid) {
-      return;
-    }
+    const loadRecord = async () => {
+      if (id && id !== 'new') {
+        try {
+          const existingRecord = await recordService.getRecord(id);
+          if (existingRecord) {
+            reset(existingRecord);
+            setCurrentRecord(existingRecord);
+          } else {
+            console.warn(`Record with id ${id} not found`);
+            setSaveError('Record not found');
+          }
+        } catch (error) {
+          console.error('Error loading record:', error);
+          setSaveError('Failed to load record');
+        }
+      } else {
+        // For new records, get current form values
+        const formValues = getValues();
+        setCurrentRecord({ ...formValues, id: 'new' } as EPCRData);
+      }
+    };
     
-    try {
-      await actions.submitForm();
-      navigate('/epcr/list');
-    } catch (error) {
-      console.error('Submit failed:', error);
-    }
+    loadRecord();
+  }, [id, reset, getValues]);
+
+  const onSubmit = async (data: EPCRData) => {
+    await handleSaveRecord(data, 'completed');
   };
 
   const handlePrint = () => {
     window.print();
   };
 
-  const handleExportPDF = () => {
+  const handleSave = async (event?: React.MouseEvent) => {
+    // Prevent default form submission behavior
+    event?.preventDefault?.();
+    
+    setSaving(true);
+    
     try {
-      exportEPCRToPDF(formState.data, {
-        filename: `EPCR_${formState.data.reportNumber || 'Draft'}_${new Date().toISOString().split('T')[0]}.pdf`
-      });
+      const formData = getValues();
+      
+      // Save to localStorage directly, bypassing all services
+      const recordId = (id && id !== 'new') ? id : Date.now().toString();
+      
+      const savedData = {
+        ...formData,
+        id: recordId,
+        status: 'draft',
+        updatedAt: new Date().toISOString(),
+        createdAt: new Date().toISOString()
+      };
+      
+      const storageKey = `epcr_record_${recordId}`;
+      localStorage.setItem(storageKey, JSON.stringify(savedData));
+      
+      // Trigger event to notify other components (like MedicalPage) that records have been updated
+      window.dispatchEvent(new CustomEvent('epcr-records-updated'));
+      
+      // Update currentRecord state so AI Summary section appears
+      setCurrentRecord({ ...savedData } as EPCRData);
+      
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
+      
     } catch (error) {
-      console.error('PDF export failed:', error);
+      console.error('Save failed:', error);
+      setSaveError('Save failed: ' + (error as Error).message);
+    } finally {
+      setSaving(false);
     }
   };
 
-  const getStepContent = (step: number) => {
-    switch (step) {
-      case 0:
-        return <PatientDemographicsForm control={control} />;
-      case 1:
-        return <IncidentInformationForm control={control} />;
-      case 2:
-        return (
-          <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
-            <Typography variant="h6" gutterBottom>
-              Chief Complaint - Coming Soon
-            </Typography>
-            <Typography color="text.secondary">
-              This section is under development.
-            </Typography>
-          </Paper>
-        );
-      case 3:
-        return (
-          <VitalSignsForm
-            control={control}
-            onAddVitalSigns={actions.addVitalSigns}
-            onRemoveVitalSigns={actions.removeVitalSigns}
-          />
-        );
-      case 4:
-        return (
-          <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
-            <Typography variant="h6" gutterBottom>
-              Assessment - Coming Soon
-            </Typography>
-            <Typography color="text.secondary">
-              This section is under development.
-            </Typography>
-          </Paper>
-        );
-      case 5:
-        return (
-          <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
-            <Typography variant="h6" gutterBottom>
-              Medications & Procedures - Coming Soon
-            </Typography>
-            <Typography color="text.secondary">
-              This section is under development.
-            </Typography>
-          </Paper>
-        );
-      case 6:
-        return (
-          <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
-            <Typography variant="h6" gutterBottom>
-              Narrative - Coming Soon
-            </Typography>
-            <Typography color="text.secondary">
-              This section is under development.
-            </Typography>
-          </Paper>
-        );
-      case 7:
-        return (
-          <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
-            <Typography variant="h6" gutterBottom>
-              Disposition - Coming Soon
-            </Typography>
-            <Typography color="text.secondary">
-              This section is under development.
-            </Typography>
-          </Paper>
-        );
-      case 8:
-        return (
-          <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
-            <Typography variant="h6" gutterBottom>
-              Review & Submit
-            </Typography>
-            <Typography color="text.secondary" paragraph>
-              Please review all sections of the ePCR form before submitting.
-            </Typography>
-            <Alert severity="info">
-              Once submitted, this report will be sent for approval and cannot be modified.
-            </Alert>
-          </Paper>
-        );
-      default:
-        return null;
+  const handleSaveRecord = async (data: EPCRData, status: 'draft' | 'completed') => {
+    setSaving(true);
+    setSaveError(null);
+    
+    try {
+      const recordData = { ...data, status };
+      
+      // Use same localStorage approach as handleSave to avoid authentication issues
+      const recordId = (id && id !== 'new') ? id : Date.now().toString();
+      
+      const savedRecord: EPCRData = {
+        ...recordData,
+        id: recordId,
+        updatedAt: new Date().toISOString(),
+        createdAt: recordData.createdAt || new Date().toISOString()
+      };
+      
+      const storageKey = `epcr_record_${recordId}`;
+      localStorage.setItem(storageKey, JSON.stringify(savedRecord));
+      
+      setCurrentRecord(savedRecord);
+      setSaveSuccess(true);
+      
+      // Reset form with saved data to clear dirty state
+      reset(savedRecord);
+      
+      setTimeout(() => setSaveSuccess(false), 3000);
+    } catch (error) {
+      console.error('Error saving record:', error);
+      setSaveError(error instanceof Error ? error.message : 'Failed to save record');
+    } finally {
+      setSaving(false);
     }
   };
 
-  const renderSaveStatus = () => {
-    switch (saveStatus) {
-      case 'saving':
-        return (
-          <Chip
-            icon={<CircularProgress size={16} />}
-            label="Saving..."
-            color="info"
-            size="small"
-          />
-        );
-      case 'saved':
-        return (
-          <Chip
-            label="Saved"
-            color="success"
-            size="small"
-          />
-        );
-      case 'error':
-        return (
-          <Chip
-            label="Save failed"
-            color="error"
-            size="small"
-          />
-        );
-      default:
-        return isDirty ? (
-          <Chip
-            label="Unsaved changes"
-            color="warning"
-            size="small"
-          />
-        ) : null;
+  const handleExportMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setExportMenuAnchor(event.currentTarget);
+  };
+
+  const handleExportMenuClose = () => {
+    setExportMenuAnchor(null);
+  };
+
+  const handleExportToPDF = () => {
+    if (currentRecord) {
+      exportEPCRToPDF(currentRecord, {
+        filename: `EPCR_${currentRecord.reportNumber || 'Draft'}_${new Date().toISOString().split('T')[0]}.pdf`
+      });
     }
+    handleExportMenuClose();
+  };
+
+  const handleExportToCSV = () => {
+    if (currentRecord) {
+      exportSingleRecordToCSV(currentRecord);
+    }
+    handleExportMenuClose();
+  };
+
+  const handleExportToJSON = () => {
+    if (currentRecord) {
+      exportSingleRecordToJSON(currentRecord);
+    }
+    handleExportMenuClose();
+  };
+
+  const handleExportSummary = () => {
+    if (currentRecord) {
+      exportPatientSummary(currentRecord);
+    }
+    handleExportMenuClose();
+  };
+
+  const handleExit = () => {
+    navigate('/dashboard');
   };
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      {/* Header */}
-      <Box mb={4}>
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-          <Typography variant="h4" component="h1" fontWeight="bold">
-            Electronic Patient Care Report
-          </Typography>
-          <Stack direction="row" spacing={1} alignItems="center">
-            {renderSaveStatus()}
-            <Chip
-              label={formState.data.status || 'draft'}
-              color={formState.data.status === 'completed' ? 'success' : 'default'}
-              size="small"
-              variant="outlined"
-            />
-          </Stack>
-        </Box>
+    <>
+      {/* Print/Save Controls - Hidden when printing */}
+      <Box sx={{ 
+        position: 'fixed', 
+        top: 80, 
+        right: 20, 
+        zIndex: 1300,
+        display: 'flex',
+        gap: 1,
+        padding: 1,
+        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+        borderRadius: 2,
+        boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
+        '@media print': { display: 'none' },
+        '@media (max-width: 600px)': { 
+          position: 'relative',
+          top: 'auto',
+          right: 'auto',
+          mb: 2,
+          justifyContent: 'center'
+        }
+      }}>
+        <Button
+          type="button"
+          variant="outlined"
+          startIcon={<DashboardIcon />}
+          onClick={handleExit}
+          color="secondary"
+        >
+          Dashboard
+        </Button>
         
-        {formState.lastSaved && (
-          <Typography variant="body2" color="text.secondary">
-            Last saved: {new Date(formState.lastSaved).toLocaleString()}
-          </Typography>
-        )}
+        <Button
+          type="button"
+          variant="outlined"
+          startIcon={saving ? <CircularProgress size={16} /> : <SaveIcon />}
+          onClick={handleSave}
+          disabled={saving}
+          sx={{ 
+            backgroundColor: isDirty ? 'warning.light' : 'inherit',
+            borderColor: isDirty ? 'warning.main' : 'inherit',
+            '&:hover': {
+              backgroundColor: isDirty ? 'warning.main' : 'inherit',
+              color: isDirty ? 'white' : 'inherit'
+            }
+          }}
+        >
+          {saving ? 'Saving...' : (isDirty ? 'Save*' : 'Save')}
+        </Button>
+        
+        <Button
+          type="button"
+          variant="outlined"
+          startIcon={<PrintIcon />}
+          onClick={handlePrint}
+        >
+          Print
+        </Button>
+        
+        <Button
+          type="button"
+          variant="outlined" 
+          startIcon={<ExportIcon />}
+          onClick={handleExportMenuOpen}
+        >
+          Export
+        </Button>
+
+        <Button
+          type="submit"
+          variant="contained"
+          startIcon={<SendIcon />}
+          disabled={saving}
+          color="primary"
+        >
+          Submit
+        </Button>
       </Box>
 
-      {/* Stepper */}
-      <Paper elevation={1} sx={{ p: 2, mb: 4 }}>
-        <Stepper activeStep={activeStep} alternativeLabel>
-          {steps.map((label, index) => (
-            <Step key={label}>
-              <StepLabel
-                onClick={() => setActiveStep(index)}
-                sx={{ cursor: 'pointer' }}
-              >
-                {label}
-              </StepLabel>
-            </Step>
-          ))}
-        </Stepper>
-      </Paper>
+      <Container 
+        maxWidth="lg" 
+        sx={{ 
+          py: { xs: 2, sm: 4 },
+          pr: { xs: 2, sm: 4, md: 12 }, // Extra right padding to avoid fixed controls
+        }}
+      >
+        <form onSubmit={handleSubmit(onSubmit)} onReset={(e) => e.preventDefault()}>
+          {/* Page 1 - Patient Care Report */}
+          <Box className="page-1" sx={{ mb: 4 }}>
+            {/* Form Header */}
+            <FormHeader control={control} />
 
-      {/* Form Content */}
-      <Box mb={4}>
-        {getStepContent(activeStep)}
-      </Box>
+            {/* Patient Demographics */}
+            <PatientDemographicsForm control={control} />
 
-      {/* Navigation Buttons */}
-      <Paper elevation={1} sx={{ p: 3 }}>
-        <Box display="flex" justifyContent="space-between" alignItems="center">
-          <Button
-            disabled={activeStep === 0}
-            onClick={handleBack}
-            startIcon={<ArrowBackIcon />}
-          >
-            Back
-          </Button>
+            {/* Crew PPE Grid */}
+            <CrewPPEGrid control={control} />
 
-          <Stack direction="row" spacing={2}>
-            <Button
-              variant="outlined"
-              onClick={handleSave}
-              startIcon={<SaveIcon />}
-              disabled={!isDirty || formState.isSubmitting}
-            >
-              Save Draft
-            </Button>
+            {/* Medical Information */}
+            <MedicalInformation control={control} />
 
-            <Button
-              variant="outlined"
-              onClick={handlePrint}
-              startIcon={<PrintIcon />}
-            >
-              Print
-            </Button>
+            {/* Glasgow Coma Scale */}
+            <GlasgowComaScaleCalculator control={control} name="glasgowComaScale" />
 
-            <Button
-              variant="outlined"
-              onClick={handleExportPDF}
-              startIcon={<PdfIcon />}
-              color="secondary"
-            >
-              Export PDF
-            </Button>
+            {/* Physical Assessment */}
+            <PhysicalAssessment control={control} />
 
-            {activeStep === steps.length - 1 ? (
-              <Button
-                variant="contained"
-                onClick={handleSubmit}
-                startIcon={<SendIcon />}
-                disabled={!isValid || formState.isSubmitting}
-              >
-                Submit for Approval
-              </Button>
-            ) : (
-              <Button
-                variant="contained"
-                onClick={handleNext}
-                endIcon={<ArrowForwardIcon />}
-              >
-                Next
-              </Button>
-            )}
-          </Stack>
-        </Box>
-      </Paper>
+            {/* Trauma/Blood Loss */}
+            <TraumaBloodLoss control={control} />
 
-      {/* Form Errors */}
-      {formState.errors.length > 0 && (
-        <Box mt={3}>
-          <Alert severity="error">
-            <Typography variant="subtitle2" gutterBottom>
-              Please correct the following errors:
+            {/* Vital Signs */}
+            <Box sx={{ mb: 2 }}>
+              <VitalSignsCollector
+                vitalSigns={watch('vitalSigns') || []}
+                onChange={(vitalSigns) => setValue('vitalSigns', vitalSigns)}
+              />
+            </Box>
+
+            {/* Body Diagram */}
+            <NumberedBodyDiagram 
+              control={control} 
+              name="bodyDiagram.injuries"
+              label="Physical Assessment - Body Diagram"
+            />
+
+            {/* Treatment Checklist */}
+            <TreatmentChecklistPDF control={control} />
+
+            {/* Transport */}
+            <TransportSection control={control} />
+          </Box>
+
+          {/* Page 2 - Notes */}
+          <NotesPage control={control} />
+
+          {/* AI Summary Section */}
+          <Paper elevation={2} sx={{ p: 3, mt: 4, mb: 4 }}>
+            <Typography variant="h5" gutterBottom sx={{ 
+              borderBottom: '2px solid',
+              borderColor: 'primary.main',
+              pb: 1,
+              mb: 3
+            }}>
+              AI-Generated Medical Summary
             </Typography>
-            <ul style={{ margin: 0, paddingLeft: 20 }}>
-              {formState.errors.map((error, index) => (
-                <li key={index}>
-                  <strong>{error.field}:</strong> {error.message}
-                </li>
-              ))}
-            </ul>
-          </Alert>
-        </Box>
-      )}
-    </Container>
+            
+            {currentRecord?.id && currentRecord.id !== 'new' ? (
+              <AISummaryGenerator
+                epcrId={currentRecord!.id!}
+                onSummaryGenerated={(summary) => {
+                  // Handle summary generation if needed
+                }}
+                onSummaryUpdated={(summary) => {
+                  // Handle summary updates if needed
+                }}
+              />
+            ) : (
+              <Alert severity="info" sx={{ mt: 2 }}>
+                Please save the ePCR first to generate an AI summary.
+              </Alert>
+            )}
+          </Paper>
+        </form>
+      </Container>
+
+      {/* Print-specific styling */}
+      <style>{`
+        @media print {
+          @page {
+            margin: 0.5in;
+            size: letter;
+          }
+          
+          body {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          
+          .page-1 {
+            page-break-after: always !important;
+          }
+          
+          .notes-page-section {
+            page-break-before: always !important;
+          }
+
+          /* Hide interactive elements when printing */
+          button, .MuiButton-root {
+            display: none !important;
+          }
+          
+          /* Ensure tables and content don't break across pages */
+          table, .crew-ppe-section, .glasgow-coma-scale-section, 
+          .physical-assessment-section, .trauma-blood-loss-section {
+            page-break-inside: avoid !important;
+          }
+
+          /* Make text smaller for print */
+          .MuiTypography-root {
+            font-size: 0.75rem !important;
+          }
+          
+          .MuiInputBase-input {
+            font-size: 0.7rem !important;
+          }
+        }
+      `}</style>
+
+      {/* Export Menu */}
+      <Menu
+        anchorEl={exportMenuAnchor}
+        open={Boolean(exportMenuAnchor)}
+        onClose={handleExportMenuClose}
+        sx={{ '@media print': { display: 'none' } }}
+      >
+        <MenuItem onClick={handleExportToPDF}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <PdfIcon /> Export as PDF
+          </Box>
+        </MenuItem>
+        <MenuItem onClick={handleExportToCSV}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            📊 Export as CSV
+          </Box>
+        </MenuItem>
+        <MenuItem onClick={handleExportToJSON}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            📋 Export as JSON
+          </Box>
+        </MenuItem>
+        <MenuItem onClick={handleExportSummary}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            📝 Export Summary
+          </Box>
+        </MenuItem>
+      </Menu>
+
+      {/* Success/Error Snackbars */}
+      <Snackbar
+        open={saveSuccess}
+        autoHideDuration={3000}
+        onClose={() => setSaveSuccess(false)}
+        sx={{ '@media print': { display: 'none' } }}
+      >
+        <Alert severity="success" onClose={() => setSaveSuccess(false)}>
+          Record saved successfully!
+        </Alert>
+      </Snackbar>
+
+      <Snackbar
+        open={!!saveError}
+        autoHideDuration={6000}
+        onClose={() => setSaveError(null)}
+        sx={{ '@media print': { display: 'none' } }}
+      >
+        <Alert severity="error" onClose={() => setSaveError(null)}>
+          {saveError}
+        </Alert>
+      </Snackbar>
+    </>
   );
 };

@@ -1,4 +1,5 @@
 import { EPCRData } from '../types/epcr';
+import { epcrAPI } from './api';
 
 export interface RecordServiceInterface {
   saveRecord: (record: EPCRData) => Promise<EPCRData>;
@@ -14,8 +15,39 @@ class MockRecordService implements RecordServiceInterface {
 
   private getRecordsFromStorage(): EPCRData[] {
     try {
+      // First try to get from the unified storage
       const stored = localStorage.getItem(this.storageKey);
-      return stored ? JSON.parse(stored) : [];
+      let records: EPCRData[] = stored ? JSON.parse(stored) : [];
+      
+      // Also scan for individual epcr_record_* keys from EPCRFormPage saves
+      const individualRecords: EPCRData[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('epcr_record_')) {
+          try {
+            const recordData = localStorage.getItem(key);
+            if (recordData) {
+              const record: EPCRData = JSON.parse(recordData);
+              // Only add if not already in the main records array
+              if (!records.find(r => r.id === record.id)) {
+                individualRecords.push(record);
+              }
+            }
+          } catch (parseError) {
+            console.warn(`Failed to parse individual record ${key}:`, parseError);
+          }
+        }
+      }
+      
+      // Combine both sources
+      const allRecords = [...records, ...individualRecords];
+      
+      // If we found individual records, migrate them to the unified storage
+      if (individualRecords.length > 0) {
+        this.saveRecordsToStorage(allRecords);
+      }
+      
+      return allRecords;
     } catch (error) {
       console.error('Error loading records from localStorage:', error);
       return [];
@@ -176,8 +208,64 @@ class ApiRecordService implements RecordServiceInterface {
 }
 */
 
-// Export the service instance
+// Production API service implementation
+class ApiRecordService implements RecordServiceInterface {
+  async saveRecord(record: EPCRData): Promise<EPCRData> {
+    try {
+      return await epcrAPI.create(record);
+    } catch (error) {
+      console.error('Failed to save record:', error);
+      throw new Error('Failed to save record. Please check your connection and try again.');
+    }
+  }
+
+  async updateRecord(id: string, record: EPCRData): Promise<EPCRData> {
+    try {
+      return await epcrAPI.update(id, record);
+    } catch (error) {
+      console.error('Failed to update record:', error);
+      throw new Error('Failed to update record. Please check your connection and try again.');
+    }
+  }
+
+  async getRecord(id: string): Promise<EPCRData | null> {
+    try {
+      return await epcrAPI.getById(id);
+    } catch (error) {
+      if ((error as any)?.response?.status === 404) {
+        return null;
+      }
+      console.error('Failed to load record:', error);
+      throw new Error('Failed to load record. Please check your connection and try again.');
+    }
+  }
+
+  async getAllRecords(): Promise<EPCRData[]> {
+    try {
+      return await epcrAPI.getAll();
+    } catch (error) {
+      console.error('Failed to load records:', error);
+      throw new Error('Failed to load records. Please check your connection and try again.');
+    }
+  }
+
+  async deleteRecord(id: string): Promise<boolean> {
+    try {
+      await epcrAPI.delete(id);
+      return true;
+    } catch (error) {
+      console.error('Failed to delete record:', error);
+      return false;
+    }
+  }
+}
+
+// Export the service instance - FORCE mock service for now to avoid API redirects
 export const recordService: RecordServiceInterface = new MockRecordService();
+
+// Original logic (commented out while debugging):
+// const useApiService = process.env.NODE_ENV === 'production' && process.env.REACT_APP_USE_API !== 'false';
+// export const recordService: RecordServiceInterface = useApiService ? new ApiRecordService() : new MockRecordService();
 
 // Helper function to initialize with mock data if no records exist
 export const initializeMockData = async (): Promise<void> => {

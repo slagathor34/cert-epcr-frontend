@@ -66,7 +66,29 @@ const UserMenu: React.FC = () => {
     navigate(path);
   };
 
-  if (!user) return null;
+  // TEMPORARY: Create a mock user for development when no user is authenticated
+  const mockUser = user || {
+    id: 'dev-user',
+    firstName: 'Dev',
+    lastName: 'User',
+    email: 'dev@sacfire.cert',
+    role: 'admin' as const,
+    certificationLevel: 'Paramedic',
+    isActive: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    preferences: {
+      theme: 'auto',
+      language: 'en',
+      timezone: 'America/Los_Angeles',
+      emailNotifications: true,
+      autoSaveInterval: 30,
+      defaultFormView: 'advanced'
+    },
+    federatedProviders: []
+  };
+
+  if (!user && !mockUser) return null;
 
   const getRoleColor = (role: string) => {
     switch (role) {
@@ -104,14 +126,14 @@ const UserMenu: React.FC = () => {
             fontSize: '0.875rem'
           }}
         >
-          {user.firstName.charAt(0)}{user.lastName.charAt(0)}
+          {mockUser.firstName.charAt(0)}{mockUser.lastName.charAt(0)}
         </Avatar>
         <Box sx={{ textAlign: 'left', display: { xs: 'none', md: 'block' } }}>
           <Typography variant="body2" sx={{ color: 'white', fontWeight: 600, lineHeight: 1.2 }}>
-            {user.firstName} {user.lastName}
+            {mockUser.firstName} {mockUser.lastName}
           </Typography>
           <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.8)', lineHeight: 1 }}>
-            {user.role} • {user.certificationLevel}
+            {mockUser.role} • {mockUser.certificationLevel}
           </Typography>
         </Box>
       </Button>
@@ -135,27 +157,27 @@ const UserMenu: React.FC = () => {
         <Box sx={{ px: 2, py: 1.5, borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
             <Avatar sx={{ bgcolor: '#1976d2' }}>
-              {user.firstName.charAt(0)}{user.lastName.charAt(0)}
+              {mockUser.firstName.charAt(0)}{mockUser.lastName.charAt(0)}
             </Avatar>
             <Box>
               <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                {user.firstName} {user.lastName}
+                {mockUser.firstName} {mockUser.lastName}
               </Typography>
               <Typography variant="caption" color="text.secondary">
-                {user.email}
+                {mockUser.email}
               </Typography>
             </Box>
           </Box>
           <Box sx={{ display: 'flex', gap: 1 }}>
             <Chip
               size="small"
-              label={user.role}
-              color={getRoleColor(user.role) as any}
+              label={mockUser.role}
+              color={getRoleColor(mockUser.role) as any}
               variant="filled"
             />
             <Chip
               size="small"
-              label={user.certificationLevel}
+              label={mockUser.certificationLevel}
               variant="outlined"
               color="primary"
             />
@@ -257,6 +279,14 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     if (path.includes('/epcr/')) return [
       { label: 'Unified Command Center', path: '/dashboard' },
       { label: 'View Report', path: path }
+    ];
+    if (path === '/admin/users') return [
+      { label: 'Unified Command Center', path: '/dashboard' },
+      { label: 'User Management', path: '/admin/users' }
+    ];
+    if (path === '/admin/settings') return [
+      { label: 'Unified Command Center', path: '/dashboard' },
+      { label: 'System Settings', path: '/admin/settings' }
     ];
     return [{ label: 'Unified Command Center', path: '/dashboard' }];
   };

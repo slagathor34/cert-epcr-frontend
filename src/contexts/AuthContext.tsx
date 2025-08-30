@@ -93,6 +93,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         console.log('Found token:', !!token);
         console.log('Found user:', user);
         
+        // Additional debug info
+        console.log('All localStorage keys:', Object.keys(localStorage));
+        console.log('cert_epcr_users exists:', !!localStorage.getItem('cert_epcr_users'));
+        console.log('cert_epcr_current_user exists:', !!localStorage.getItem('cert_epcr_current_user'));
+        
         if (token && user && user.isActive) {
           console.log('User is valid and active, logging in...');
           dispatch({ 

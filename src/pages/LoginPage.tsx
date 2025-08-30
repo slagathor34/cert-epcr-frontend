@@ -33,7 +33,7 @@ import {
   LocalHospital as MedicalIcon,
 } from '@mui/icons-material';
 import { useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { LoginCredentials, RegisterData, FederatedProviders, CertificationLevel } from '../types/auth';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -61,19 +61,21 @@ function TabPanel(props: TabPanelProps) {
 export const LoginPage: React.FC = () => {
   const { login, loginWithProvider, register, resetPassword, isLoading, error, isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   
   // Debug: Log auth state
   console.log('LoginPage - isAuthenticated:', isAuthenticated);
   console.log('LoginPage - user:', user);
   console.log('LoginPage - isLoading:', isLoading);
   
-  // If already authenticated, redirect to dashboard
+  // If already authenticated, redirect to intended location or dashboard
   React.useEffect(() => {
     if (isAuthenticated && user && !isLoading) {
-      console.log('User is authenticated, redirecting to dashboard');
-      navigate('/dashboard', { replace: true });
+      const from = (location.state as any)?.from?.pathname || '/dashboard';
+      console.log('User is authenticated, redirecting to:', from);
+      navigate(from, { replace: true });
     }
-  }, [isAuthenticated, user, isLoading, navigate]);
+  }, [isAuthenticated, user, isLoading, navigate, location]);
   const [tabValue, setTabValue] = useState(0);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);

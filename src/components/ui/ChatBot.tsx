@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Fab,
   Dialog,
   DialogTitle,
-  DialogContent,
   Typography,
   IconButton,
   Paper,
@@ -16,10 +16,13 @@ import {
   Close as CloseIcon,
   SmartToy as BotIcon,
 } from '@mui/icons-material';
+import { ChatInterface } from './ChatInterface';
+import { aiService } from '../../services/aiService';
 
 export const ChatBot: React.FC = () => {
   const [open, setOpen] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
+  const navigate = useNavigate();
 
   const handleOpen = () => {
     setOpen(true);
@@ -34,6 +37,18 @@ export const ChatBot: React.FC = () => {
     if (!open) {
       setShowTooltip(!showTooltip);
     }
+  };
+
+  const handleOpenSettings = () => {
+    setOpen(false);
+    navigate('/admin/settings');
+  };
+
+  const getTooltipText = () => {
+    if (aiService.isEnabled()) {
+      return 'Chat with CERT Assistant';
+    }
+    return 'Configure AI to enable chat';
   };
 
   return (
@@ -76,7 +91,7 @@ export const ChatBot: React.FC = () => {
             }}
           >
             <Typography variant="body2" sx={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
-              Need help? Chat with us!
+              {getTooltipText()}
             </Typography>
           </Paper>
         </Fade>
@@ -164,94 +179,10 @@ export const ChatBot: React.FC = () => {
           </IconButton>
         </DialogTitle>
 
-        {/* Content */}
-        <DialogContent
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            textAlign: 'center',
-            p: 4,
-            backgroundColor: '#f8fafc',
-          }}
-        >
-          {/* Bot Avatar */}
-          <Box
-            sx={{
-              width: 80,
-              height: 80,
-              borderRadius: '50%',
-              background: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              mb: 3,
-              boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
-            }}
-          >
-            <BotIcon sx={{ fontSize: 40, color: 'white' }} />
-          </Box>
-
-          {/* Coming Soon Message */}
-          <Typography
-            variant="h5"
-            sx={{
-              color: '#1e3a8a',
-              fontWeight: 700,
-              mb: 2,
-            }}
-          >
-            Coming Soon!
-          </Typography>
-
-          <Typography
-            variant="body1"
-            sx={{
-              color: '#6b7280',
-              mb: 3,
-              lineHeight: 1.6,
-            }}
-          >
-            Our AI-powered CERT Assistant will help you with:
-          </Typography>
-
-          {/* Feature List */}
-          <Box sx={{ textAlign: 'left', width: '100%' }}>
-            {[
-              '📋 ePCR form guidance',
-              '🩺 Medical protocol assistance',
-              '📊 Report completion help',
-              '🚑 Emergency procedures',
-              '📞 Contact information',
-            ].map((feature, index) => (
-              <Typography
-                key={index}
-                variant="body2"
-                sx={{
-                  color: '#374151',
-                  mb: 1,
-                  display: 'flex',
-                  alignItems: 'center',
-                  fontSize: '0.9rem',
-                }}
-              >
-                {feature}
-              </Typography>
-            ))}
-          </Box>
-
-          <Typography
-            variant="body2"
-            sx={{
-              color: '#9ca3af',
-              mt: 3,
-              fontStyle: 'italic',
-            }}
-          >
-            Stay tuned for updates!
-          </Typography>
-        </DialogContent>
+        {/* Chat Interface */}
+        <Box sx={{ height: 'calc(100% - 64px)' }}>
+          <ChatInterface onOpenSettings={handleOpenSettings} />
+        </Box>
       </Dialog>
     </>
   );

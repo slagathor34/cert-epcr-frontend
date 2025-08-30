@@ -66,11 +66,44 @@ class MockAuthService implements AuthServiceInterface {
 
   async login(credentials: LoginCredentials): Promise<AuthApiResponse> {
     console.log('Login attempt for:', credentials.email);
-    const users = this.getUsersFromStorage();
+    let users = this.getUsersFromStorage();
     console.log('All users in storage:', users);
     console.log('Looking for user with email:', credentials.email.toLowerCase());
-    const user = users.find(u => u.email.toLowerCase() === credentials.email.toLowerCase());
+    let user = users.find(u => u.email.toLowerCase() === credentials.email.toLowerCase());
     console.log('Found user:', user);
+
+    // If admin user doesn't exist and this is the admin login, create it
+    if (!user && credentials.email.toLowerCase() === 'admin@sacfire.cert') {
+      console.log('Admin user not found, creating it now...');
+      const adminUser: User = {
+        id: this.generateId(),
+        email: 'admin@sacfire.cert',
+        firstName: 'Admin',
+        lastName: 'User',
+        role: 'admin',
+        department: 'Sacramento Fire CERT',
+        badgeNumber: 'ADMIN001',
+        certificationLevel: 'Paramedic',
+        isActive: true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        preferences: {
+          theme: 'auto',
+          language: 'en',
+          timezone: 'America/Los_Angeles',
+          emailNotifications: true,
+          autoSaveInterval: 30,
+          defaultFormView: 'advanced'
+        },
+        federatedProviders: []
+      };
+      
+      users.push(adminUser);
+      this.saveUsersToStorage(users);
+      localStorage.setItem(`pwd_${adminUser.id}`, this.hashPassword('cert22!@'));
+      user = adminUser;
+      console.log('Admin user created:', user);
+    }
 
     if (!user) {
       console.log('User not found in storage');
@@ -94,7 +127,7 @@ class MockAuthService implements AuthServiceInterface {
       updatedAt: new Date().toISOString()
     };
 
-    const updatedUsers = users.map(u => u.id === user.id ? updatedUser : u);
+    const updatedUsers = users.map(u => u.id === user!.id ? updatedUser : u);
     this.saveUsersToStorage(updatedUsers);
 
     const token = this.generateToken();
